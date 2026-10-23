@@ -6,8 +6,26 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import bcrypt from 'bcryptjs'
 
-const url = process.env.DATABASE_URL
+// Ті самі правила пошуку змінної, що й у src/lib/env.ts
+const env = process.env
+const url =
+  env.DATABASE_URL ||
+  env.POSTGRES_URL ||
+  env.STORAGE_URL ||
+  Object.keys(env)
+    .filter((k) => /(^|_)DATABASE_URL$/.test(k) && !k.endsWith('UNPOOLED') && env[k])
+    .sort()
+    .map((k) => env[k])[0]
+
 if (!url) {
+  if (env.VERCEL) {
+    // На Vercel без бази сайт не працюватиме — краще зупинити збірку з чіткою причиною
+    console.error(
+      '[migrate] Не знайдено змінну підключення до БД. Підключіть Neon: Vercel → Storage → Connect, ' +
+        'і перевірте, що в Settings → Environment Variables є DATABASE_URL.',
+    )
+    process.exit(1)
+  }
   console.warn('[migrate] DATABASE_URL не задано — міграції пропущено')
   process.exit(0)
 }

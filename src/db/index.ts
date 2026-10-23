@@ -3,6 +3,7 @@ import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { attachDatabasePool } from '@vercel/functions'
 import * as schema from './schema'
+import { getDatabaseUrl } from '@/lib/env'
 
 type DB = NodePgDatabase<typeof schema>
 
@@ -10,8 +11,8 @@ type DB = NodePgDatabase<typeof schema>
 const globalForDb = globalThis as unknown as { __db?: DB }
 
 function createDb(): DB {
-  const connectionString = process.env.DATABASE_URL
-  if (!connectionString) throw new Error('DATABASE_URL не задано')
+  const connectionString = getDatabaseUrl()
+  if (!connectionString) throw new Error('Не знайдено рядок підключення до БД (DATABASE_URL)')
   const pool = new Pool({
     connectionString,
     max: 3,
