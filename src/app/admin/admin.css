@@ -379,6 +379,91 @@
   border: 1px solid var(--adm-border);
 }
 
+/* ---------- Обрізка фото ---------- */
+.adm-photo-controls {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.adm-crop {
+  width: min(720px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 20px;
+  border: 1px solid var(--adm-border);
+  border-radius: 16px;
+  background: var(--adm-card);
+  color: var(--adm-text);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.adm-crop:not([open]) {
+  display: none;
+}
+
+.adm-crop::backdrop {
+  background: rgba(2, 6, 18, 0.8);
+  backdrop-filter: blur(3px);
+}
+
+.adm-crop-head h2 {
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.adm-crop-head p {
+  font-size: 0.9rem;
+}
+
+.adm-crop-area {
+  position: relative;
+  width: 100%;
+  height: min(60dvh, 520px);
+  min-height: 260px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #02060f;
+}
+
+.adm-crop-zoom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--adm-muted);
+}
+
+.adm-crop-zoom input {
+  flex: 1;
+  accent-color: var(--adm-accent);
+}
+
+.adm-crop-cancel {
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .adm-crop {
+    padding: 14px;
+  }
+
+  .adm-crop-area {
+    height: 52dvh;
+  }
+
+  .adm-crop-actions .adm-btn {
+    flex: 1 1 auto;
+  }
+
+  .adm-crop-cancel {
+    margin-left: 0;
+  }
+}
+
 /* ---------- Таблиці / списки ---------- */
 .adm-table {
   width: 100%;

@@ -1,79 +1,96 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-
-const MAX_SIDE = 1200
-const QUALITY = 0.85
-
-/** Стискає фото в браузері перед відправкою: менше трафіку і місця у сховищі. */
-async function compress(file: File): Promise<File> {
-  if (!file.type.startsWith('image/')) return file
-  const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))
-  const width = Math.round(bitmap.width * scale)
-  const height = Math.round(bitmap.height * scale)
-
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return file
-  ctx.drawImage(bitmap, 0, 0, width, height)
-  bitmap.close()
-
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', QUALITY))
-  if (!blob || blob.type !== 'image/webp') {
-    const jpeg = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', QUALITY))
-    return jpeg ? new File([jpeg], 'photo.jpg', { type: 'image/jpeg' }) : file
-  }
-  return new File([blob], 'photo.webp', { type: 'image/webp' })
-}
+import { CropDialog } from './CropDialog'
+import {
+  exportImage,
+  ImageReadError,
+  loadImage,
+  type CropArea,
+  type LoadedImage,
+} from './image-processing'
 
 export function PhotoInput({ current, error }: { current: string | null; error?: string }) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  // Видиме поле вибору — лише для вибору; на сервер іде підготовлений файл із прихованого поля
+  const pickerRef = useRef<HTMLInputElement>(null)
+  const uploadRef = useRef<HTMLInputElement>(null)
+  const [image, setImage] = useState<LoadedImage | null>(null)
+  const [cropping, setCropping] = useState(false)
   const [preview, setPreview] = useState<string | null>(current)
+  const [info, setInfo] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const [remove, setRemove] = useState(false)
 
-  // React скидає форму після відправки — синхронізуємо прев'ю з порожнім полем файлу
+  // React скидає форму після відправки — повертаємо початковий стан
   useEffect(() => {
-    const form = inputRef.current?.form
+    const form = uploadRef.current?.form
     if (!form) return
     const onReset = () => {
       setPreview(current)
       setRemove(false)
+      setInfo(null)
+      setImage(null)
     }
     form.addEventListener('reset', onReset)
     return () => form.removeEventListener('reset', onReset)
   }, [current])
 
-  async function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    setLocalError(null)
-    if (!file) return
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setLocalError('Оберіть фото у форматі JPG, PNG або WebP.')
-      e.target.value = ''
-      return
+  // Звільняємо пам'ять від попереднього зображення
+  useEffect(() => {
+    return () => {
+      if (image) {
+        image.bitmap.close()
+        URL.revokeObjectURL(image.url)
+      }
     }
+  }, [image])
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // дозволяє вибрати той самий файл ще раз
+    if (!file) return
+    setLocalError(null)
     setBusy(true)
     try {
-      const small = await compress(file)
-      const dt = new DataTransfer()
-      dt.items.add(small)
-      if (inputRef.current) inputRef.current.files = dt.files
-      setPreview(URL.createObjectURL(small))
-      setRemove(false)
-    } catch {
-      setLocalError('Не вдалося обробити фото. Спробуйте інше.')
-      e.target.value = ''
+      const loaded = await loadImage(file)
+      setImage(loaded)
+      setCropping(true)
+    } catch (err) {
+      setLocalError(err instanceof ImageReadError ? err.message : 'Не вдалося відкрити фото. Спробуйте інше.')
     } finally {
       setBusy(false)
     }
   }
 
+  async function finish(crop: CropArea | null) {
+    if (!image) return
+    setCropping(false)
+    setBusy(true)
+    try {
+      const file = await exportImage(image, crop)
+      const dt = new DataTransfer()
+      dt.items.add(file)
+      if (uploadRef.current) uploadRef.current.files = dt.files
+      setPreview(URL.createObjectURL(file))
+      setRemove(false)
+      setInfo(`${crop ? 'Обрізано' : 'Повне фото'} · ${Math.max(1, Math.round(file.size / 1024))} КБ`)
+    } catch (err) {
+      setLocalError(err instanceof ImageReadError ? err.message : 'Не вдалося обробити фото.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function cancelCrop() {
+    setCropping(false)
+    // Якщо фото ще не було підготовлене — повністю скасовуємо вибір
+    if (!uploadRef.current?.files?.length) setImage(null)
+  }
+
   const shownError = localError ?? error
+  const hasNewPhoto = Boolean(info)
+
   return (
     <div className="adm-field is-wide">
       <span className="adm-label">Фото</span>
@@ -84,33 +101,33 @@ export function PhotoInput({ current, error }: { current: string | null; error?:
           src={remove || !preview ? '/default-player.svg' : preview}
           alt="Попередній перегляд фото"
         />
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div className="adm-photo-controls">
+          <input ref={uploadRef} type="file" name="photo" hidden tabIndex={-1} aria-hidden="true" />
           <input
-            ref={inputRef}
+            ref={pickerRef}
             type="file"
-            name="photo"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={onChange}
+            accept="image/*,.heic,.heif"
+            onChange={onPick}
             disabled={busy}
-            aria-invalid={shownError ? true : undefined}
+            hidden
           />
+          <div className="adm-actions">
+            <button type="button" className="adm-btn" onClick={() => pickerRef.current?.click()} disabled={busy}>
+              {busy ? 'Обробляю фото…' : current || hasNewPhoto ? 'Вибрати інше фото' : 'Вибрати фото'}
+            </button>
+            {image && hasNewPhoto && (
+              <button type="button" className="adm-btn" onClick={() => setCropping(true)} disabled={busy}>
+                Обрізати ще раз
+              </button>
+            )}
+          </div>
           <span className="adm-hint">
-            {busy ? 'Обробляю фото…' : 'Бажано вертикальне фото 3:4. Стискається автоматично.'}
+            {info ??
+              'Будь-яке фото: JPG, PNG, WebP, HEIC з iPhone тощо. Розмір і якість підганяються автоматично.'}
           </span>
-          {current && (
+          {current && !hasNewPhoto && (
             <label className="adm-check">
-              <input
-                type="checkbox"
-                name="removePhoto"
-                checked={remove}
-                onChange={(e) => {
-                  setRemove(e.target.checked)
-                  if (e.target.checked && inputRef.current) {
-                    inputRef.current.value = ''
-                    setPreview(current)
-                  }
-                }}
-              />
+              <input type="checkbox" name="removePhoto" checked={remove} onChange={(e) => setRemove(e.target.checked)} />
               Прибрати фото
             </label>
           )}
@@ -121,6 +138,15 @@ export function PhotoInput({ current, error }: { current: string | null; error?:
           )}
         </div>
       </div>
+
+      {cropping && image && (
+        <CropDialog
+          imageUrl={image.url}
+          onApply={(area) => finish(area)}
+          onSkip={() => finish(null)}
+          onCancel={cancelCrop}
+        />
+      )}
     </div>
   )
 }
