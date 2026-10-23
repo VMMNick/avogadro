@@ -2,6 +2,7 @@ backend:
   name: github
   repo: https://github.com/VMMNick/avohadro
   branch: main
+  base_url: https://ваш-oauth-міст.vercel.app/api/auth
 
 media_folder: "uploads"
 public_folder: "/uploads"
