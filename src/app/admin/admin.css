@@ -1,5 +1,7 @@
 /* Стилі адмін-панелі. Усі класи з префіксом adm-, щоб не перетинатися із сайтом. */
-.adm {
+/* Змінні потрібні і в панелі (.adm), і на сторінці входу (.adm-login) */
+.adm,
+.adm-login {
   --adm-bg: #050d22;
   --adm-panel: #081430;
   --adm-card: #0c1c40;
@@ -9,6 +11,9 @@
   --adm-accent: #f2b321;
   --adm-danger: #ef4444;
   --adm-ok: #22c55e;
+}
+
+.adm {
   min-height: 100vh;
   background: var(--adm-bg);
   color: var(--adm-text);
@@ -411,6 +416,11 @@
 
 .adm-login .adm-card {
   width: min(400px, 100%);
+}
+
+.adm-login-emblem {
+  display: block;
+  margin: 0 auto 14px;
 }
 
 .adm-login h1 {
