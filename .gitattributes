@@ -1,0 +1,8 @@
+# Єдині кінці рядків (LF) у репозиторії незалежно від ОС
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
