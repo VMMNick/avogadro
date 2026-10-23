@@ -182,6 +182,7 @@ export type SettingsFormValues = {
   phone: string | null
   email: string | null
   address: string | null
+  mapQuery: string | null
   instagram: string | null
   facebook: string | null
   telegram: string | null
@@ -217,7 +218,13 @@ export function SettingsForm({ settings }: { settings: SettingsFormValues }) {
         <div className="adm-form-grid">
           {text('phone', 'Телефон', { type: 'tel', max: 40, placeholder: '+380 …' })}
           {text('email', 'Email', { type: 'email', max: 120 })}
-          {text('address', 'Адреса / Зал', { wide: true, max: 200 })}
+          {text('address', 'Адреса / Зал', { wide: true, max: 200, placeholder: 'СК «Юність», вул. Прикладна, 1, Київ' })}
+          {text('mapQuery', 'Місце на карті', {
+            wide: true,
+            max: 200,
+            placeholder: 'Порожньо — карта за полем «Адреса / Зал»',
+            hint: 'Адреса, назва залу або координати (50.4501, 30.5234). Можна вставити повне посилання Google Maps з «@координатами». Короткі посилання maps.app.goo.gl не підходять.',
+          })}
           {text('instagram', 'Instagram', { type: 'url', placeholder: 'https://instagram.com/…' })}
           {text('facebook', 'Facebook', { type: 'url', placeholder: 'https://facebook.com/…' })}
           {text('telegram', 'Telegram', { type: 'url', placeholder: 'https://t.me/…' })}

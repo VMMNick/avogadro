@@ -73,6 +73,8 @@ export const settings = pgTable(
     phone: varchar('phone', { length: 40 }),
     email: varchar('email', { length: 120 }),
     address: varchar('address', { length: 200 }),
+    // Що показувати на карті: адреса, назва залу або координати «50.45, 30.52»
+    mapQuery: varchar('map_query', { length: 200 }),
     instagram: text('instagram'),
     facebook: text('facebook'),
     telegram: text('telegram'),

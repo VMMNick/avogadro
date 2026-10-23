@@ -1,6 +1,8 @@
 import { SiteHeader } from '@/components/site/SiteHeader'
 import { TeamSection } from '@/components/site/TeamSection'
 import { EmblemLarge, EmblemSmall } from '@/components/site/Emblem'
+import { HallMap } from '@/components/site/HallMap'
+import { mapLinks, normalizeMapQuery } from '@/lib/maps'
 import { getSiteContent, splitMatches } from '@/lib/data'
 import { CLUB_NAME, DEFAULT_ABOUT, DEFAULT_TAGLINE } from '@/lib/constants'
 import { formatDateTime } from '@/lib/format'
@@ -29,7 +31,13 @@ function MatchCard({ match, past }: { match: Match; past: boolean }) {
         )}
         <span className="team-title">{match.opponent}</span>
       </div>
-      {match.location && <div className="match-location">📍 {match.location}</div>}
+      {match.location && (
+        <div className="match-location">
+          <a href={mapLinks(match.location).open} target="_blank" rel="noopener noreferrer">
+            📍 {match.location}
+          </a>
+        </div>
+      )}
     </article>
   )
 }
@@ -41,6 +49,8 @@ export default async function HomePage() {
     .split(/\r?\n\s*\r?\n/)
     .filter((p) => p.trim())
 
+  const mapQuery = normalizeMapQuery(settings?.mapQuery) ?? normalizeMapQuery(settings?.address)
+
   const contacts: { label: string; value: React.ReactNode }[] = []
   if (settings?.phone) {
     contacts.push({
@@ -51,7 +61,18 @@ export default async function HomePage() {
   if (settings?.email) {
     contacts.push({ label: 'Email', value: <a href={`mailto:${settings.email}`}>{settings.email}</a> })
   }
-  if (settings?.address) contacts.push({ label: 'Адреса', value: settings.address })
+  if (settings?.address) {
+    contacts.push({
+      label: 'Адреса',
+      value: mapQuery ? (
+        <a href={mapLinks(mapQuery).open} target="_blank" rel="noopener noreferrer">
+          {settings.address}
+        </a>
+      ) : (
+        settings.address
+      ),
+    })
+  }
   const socials = (
     [
       ['Instagram', settings?.instagram],
@@ -185,6 +206,7 @@ export default async function HomePage() {
                 <p className="state-message">Контакти з&apos;являться незабаром.</p>
               )}
             </div>
+            {mapQuery && <HallMap query={mapQuery} label={settings?.address ?? null} />}
           </div>
         </section>
       </main>

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { PLAYER_ROLES } from '@/db/schema'
 import { fromKyivInputValue } from './format'
+import { normalizeMapQuery } from './maps'
 
 const optionalText = (max: number) =>
   z
@@ -82,6 +83,10 @@ export const settingsSchema = z.object({
     .transform((v) => (v === '' ? null : v))
     .refine((v) => v === null || z.email().safeParse(v).success, 'Невірний email'),
   address: optionalText(200),
+  mapQuery: optionalText(200).refine(
+    (v) => v === null || normalizeMapQuery(v) !== null,
+    'Це посилання не можна показати на карті. Вставте адресу або координати: у Google Maps натисніть правою кнопкою на зал і скопіюйте координати.',
+  ),
   instagram: optionalHttpsUrl,
   facebook: optionalHttpsUrl,
   telegram: optionalHttpsUrl,

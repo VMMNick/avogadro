@@ -17,6 +17,7 @@ export default async function SettingsPage() {
           phone: s?.phone ?? null,
           email: s?.email ?? null,
           address: s?.address ?? null,
+          mapQuery: s?.mapQuery ?? null,
           instagram: s?.instagram ?? null,
           facebook: s?.facebook ?? null,
           telegram: s?.telegram ?? null,

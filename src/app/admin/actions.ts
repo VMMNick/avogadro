@@ -170,6 +170,7 @@ export async function saveSettingsAction(_prev: FormState, formData: FormData): 
     'phone',
     'email',
     'address',
+    'mapQuery',
     'instagram',
     'facebook',
     'telegram',

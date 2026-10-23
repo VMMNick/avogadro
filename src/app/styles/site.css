@@ -804,6 +804,93 @@ a {
   background: #c9d3ea;
 }
 
+/* ---------- Карта залу ---------- */
+.map-card {
+  position: relative;
+  margin-top: 28px;
+  overflow: hidden;
+  background:
+    linear-gradient(var(--navy-800), var(--navy-900)) padding-box,
+    linear-gradient(180deg, var(--line-strong), rgba(242, 179, 33, 0.12)) border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.map-frame {
+  position: relative;
+  height: 340px;
+  background: var(--navy-700);
+}
+
+.map-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.map-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 18px 24px 20px;
+  border-top: 2px solid var(--gold);
+}
+
+.map-place {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.map-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.map-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.map-actions .btn-primary,
+.map-actions .btn-ghost {
+  padding: 11px 24px;
+  font-size: 0.92rem;
+}
+
+.match-location a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.match-location a:hover {
+  color: var(--gold-light);
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .map-frame {
+    height: 260px;
+  }
+
+  .map-footer {
+    padding: 16px;
+  }
+
+  .map-actions,
+  .map-actions a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 /* ---------- Footer ---------- */
 .footer {
   position: relative;

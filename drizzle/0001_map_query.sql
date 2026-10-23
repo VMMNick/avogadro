@@ -1,0 +1,1 @@
+ALTER TABLE "settings" ADD COLUMN "map_query" varchar(200);
