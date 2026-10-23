@@ -9,15 +9,26 @@
 <body>
 
     <div class="container">
+        <!-- Шапка -->
         <header>
-            <div class="logo">🏐 ВК "ЛАВИНА"</div>
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));">
+                    <circle cx="12" cy="12" r="10" stroke="#f59e0b" stroke-width="2"/>
+                    <path d="M12 2C12 7 15 10 21 12" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M12 22C12 17 9 14 3 12" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M2 15C7 15 10 12 12 6" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                ВК "ЛАВИНА"
+            </div>
             <a href="/admin/" class="btn-admin">Увійти в CMS</a>
         </header>
 
+        <!-- Головний блок -->
         <div class="hero">
             <h1>Волейбольна Команда</h1>
             <p>Граємо серцем. Перемагаємо разом.</p>
 
+            <!-- Блок матчу -->
             <div class="match-card">
                 <div style="font-size:0.85rem; text-transform:uppercase; color:var(--accent); font-weight:800; letter-spacing:1px;">
                     🔥 Найближча гра • Чемпіонат Міста
@@ -33,19 +44,22 @@
             </div>
         </div>
 
+        <!-- Склад команди -->
         <section style="margin-top: 40px;">
-            <h2 style="text-align:center; font-size: 2rem;">Склад Команди</h2>
+            <h2 style="text-align:center; font-size: 2rem; margin-bottom: 20px;">Склад Команди</h2>
 
+            <!-- Кнопки-фільтри -->
             <div class="filter-container">
-                <button class="filter-btn active" data-filter="all">Усі</button>
-                <button class="filter-btn" data-filter="setter">Зв'язуючі</button>
-                <button class="filter-btn" data-filter="spiker">Догравальники</button>
-                <button class="filter-btn" data-filter="middle">Центральні</button>
-                <button class="filter-btn" data-filter="libero">Ліберо</button>
+                <button type="button" class="filter-btn active" data-filter="all">Усі</button>
+                <button type="button" class="filter-btn" data-filter="setter">Зв'язуючі</button>
+                <button type="button" class="filter-btn" data-filter="spiker">Догравальники</button>
+                <button type="button" class="filter-btn" data-filter="middle">Центральні</button>
+                <button type="button" class="filter-btn" data-filter="libero">Ліберо</button>
             </div>
 
+            <!-- Сітка гравців -->
             <div class="grid" id="players-grid">
-                <!-- Картки генеруються за допомогою main.js -->
+                <!-- Картки завантажуються через js/main.js -->
             </div>
         </section>
     </div>

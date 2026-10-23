@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: ВАШ_GITHUB_NICK/НАЗВА_РЕПОЗИТОРІЮ
+  repo: https://github.com/VMMNick/avohadro
   branch: main
 
 media_folder: "uploads"
