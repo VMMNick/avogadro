@@ -13,7 +13,7 @@ import {
 import { PLAYER_ROLES } from '@/db/schema'
 import { ROLE_LABELS } from '@/lib/constants'
 import type { FormState } from '@/lib/validation'
-import { Field, FormMessage, inputProps, SubmitButton } from './ui'
+import { Field, FormMessage, inputProps, PasswordInput, SubmitButton } from './ui'
 import { PhotoInput } from './PhotoInput'
 
 const initial: FormState = {}
@@ -35,13 +35,7 @@ export function LoginForm() {
         <input className="adm-input" type="email" autoComplete="username" required defaultValue={pick(state, 'email', '')} {...inputProps('email', state)} />
       </Field>
       <Field name="password" label="Пароль">
-        <input
-          className="adm-input"
-          type="password"
-          autoComplete="current-password"
-          required
-          {...inputProps('password', state)}
-        />
+        <PasswordInput autoComplete="current-password" required {...inputProps('password', state)} />
       </Field>
       <SubmitButton pendingText="Входжу…">Увійти</SubmitButton>
     </form>
@@ -250,7 +244,7 @@ export function NewAdminForm() {
           <input className="adm-input" type="email" required autoComplete="off" defaultValue={pick(state, 'email', '')} {...inputProps('email', state)} />
         </Field>
         <Field name="password" label="Тимчасовий пароль" error={e.password} hint="Мінімум 10 символів. Передайте його особисто." wide>
-          <input className="adm-input" type="text" required minLength={10} autoComplete="new-password" {...inputProps('password', state)} />
+          <PasswordInput required minLength={10} autoComplete="new-password" {...inputProps('password', state)} />
         </Field>
       </div>
       <div className="adm-actions">
@@ -268,13 +262,13 @@ export function ChangePasswordForm() {
       <FormMessage state={state} />
       <div className="adm-form-grid">
         <Field name="current" label="Поточний пароль" error={e.current} wide>
-          <input className="adm-input" type="password" required autoComplete="current-password" {...inputProps('current', state)} />
+          <PasswordInput required autoComplete="current-password" {...inputProps('current', state)} />
         </Field>
         <Field name="next" label="Новий пароль" error={e.next} hint="Мінімум 10 символів">
-          <input className="adm-input" type="password" required minLength={10} autoComplete="new-password" {...inputProps('next', state)} />
+          <PasswordInput required minLength={10} autoComplete="new-password" {...inputProps('next', state)} />
         </Field>
         <Field name="confirm" label="Повторіть новий пароль" error={e.confirm}>
-          <input className="adm-input" type="password" required autoComplete="new-password" {...inputProps('confirm', state)} />
+          <PasswordInput required autoComplete="new-password" {...inputProps('confirm', state)} />
         </Field>
       </div>
       <div className="adm-actions">

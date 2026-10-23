@@ -223,6 +223,7 @@
 .adm-field {
   display: grid;
   gap: 6px;
+  align-content: start;
 }
 
 .adm-field.is-wide {
@@ -324,6 +325,41 @@
   align-items: center;
   gap: 8px;
   font-size: 0.9rem;
+}
+
+/* ---------- Пароль з кнопкою «показати» ---------- */
+.adm-password {
+  position: relative;
+}
+
+.adm-password .adm-input {
+  padding-right: 46px;
+}
+
+.adm-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  color: var(--adm-muted);
+  cursor: pointer;
+}
+
+.adm-password-toggle:hover,
+.adm-password-toggle[aria-pressed='true'] {
+  color: var(--adm-accent);
+}
+
+.adm-password-toggle:focus-visible {
+  outline: 2px solid var(--adm-accent);
+  outline-offset: 0;
 }
 
 /* ---------- Фото ---------- */
