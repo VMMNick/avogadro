@@ -3,66 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ВК Авогадро — Офіційний сайт</title>
+    <title>ВК Лавина — Офіційний сайт волейбольного клубу</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- Decap CMS Identity script видалено, оскільки використовуємо Sanity.io -->
 </head>
 <body>
-
-    <div class="container">
-        <!-- Шапка -->
-        <header>
-            <div class="logo">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));">
-                    <circle cx="12" cy="12" r="10" stroke="#f59e0b" stroke-width="2"/>
-                    <path d="M12 2C12 7 15 10 21 12" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M12 22C12 17 9 14 3 12" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M2 15C7 15 10 12 12 6" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
-                </svg>
-                ВК "Авогадро"
-            </div>
-            <a href="/admin/" class="btn-admin">CMS</a>
-        </header>
-
-        <!-- Головний блок -->
-        <div class="hero">
-            <h1>Волейбольна Команда</h1>
-            <p>Граємо серцем. Перемагаємо разом.</p>
-
-            <!-- Блок матчу -->
-            <div class="match-card">
-                <div style="font-size:0.85rem; text-transform:uppercase; color:var(--accent); font-weight:800; letter-spacing:1px;">
-                    🔥 Найближча гра • Чемпіонат Міста
-                </div>
-                <div class="teams-vs">
-                    <div class="team-title">ВК "Авогадро"</div>
-                    <div class="vs-badge">VS</div>
-                    <div class="team-title">ВК "Сокіл"</div>
-                </div>
-                <div style="color:var(--text-muted); font-size:0.95rem;">
-                    📅 Субота, 28 Жовтня • 🕒 18:00 • 📍 СК "Олімпік"
-                </div>
-            </div>
+    <header class="header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <span class="logo-accent">ВК</span> ЛАВИНА
+            </a>
+            <nav class="nav">
+                <a href="#about">Про клуб</a>
+                <a href="#team">Склад команди</a>
+                <a href="#matches">Матчі</a>
+                <a href="#contacts">Контакти</a>
+            </nav>
+            <!-- Оновлено посилання для входу в адмін-панель Sanity -->
+            <a href="https://avohadro.sanity.studio" target="_blank" class="btn-admin">Увійти в CMS</a>
         </div>
+    </header>
 
-        <!-- Склад команди -->
-        <section style="margin-top: 40px;">
-            <h2 style="text-align:center; font-size: 2rem; margin-bottom: 20px;">Склад Команди</h2>
-
-            <!-- Кнопки-фільтри -->
-            <div class="filter-container">
-                <button type="button" class="filter-btn active" data-filter="all">Усі</button>
-                <button type="button" class="filter-btn" data-filter="setter">Зв'язуючі</button>
-                <button type="button" class="filter-btn" data-filter="spiker">Догравальники</button>
-                <button type="button" class="filter-btn" data-filter="middle">Центральні</button>
-                <button type="button" class="filter-btn" data-filter="libero">Ліберо</button>
-            </div>
-
-            <!-- Сітка гравців -->
-            <div class="grid" id="players-grid">
-                <!-- Картки завантажуються через js/main.js -->
+    <main>
+        <section class="hero">
+            <div class="container hero-container">
+                <h1>Волейбольний клуб <span class="highlight">«Лавина»</span></h1>
+                <p>Сила, характер та жага до перемоги на кожному майданчику.</p>
+                <a href="#matches" class="btn-primary">Найближчі матчі</a>
             </div>
         </section>
-    </div>
+
+        <section id="team" class="team-section">
+            <div class="container">
+                <h2>Склад команди</h2>
+                <div class="filters">
+                    <button class="filter-btn active" data-role="all">Усі</button>
+                    <button class="filter-btn" data-role="setter">Зв'язуючі</button>
+                    <button class="filter-btn" data-role="spiker">Догравальники</button>
+                    <button class="filter-btn" data-role="middle">Центральні</button>
+                    <button class="filter-btn" data-role="opposite">Діагональні</button>
+                    <button class="filter-btn" data-role="libero">Ліберо</button>
+                </div>
+                <div class="team-grid" id="team-grid">
+                    <!-- Гравці завантажуються динамічно з Sanity API -->
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script src="js/main.js"></script>
 </body>
