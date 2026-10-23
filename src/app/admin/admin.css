@@ -316,7 +316,7 @@
 }
 
 .adm-score .adm-input {
-  width: 80px;
+  width: 110px;
   text-align: center;
 }
 
@@ -325,6 +325,61 @@
   align-items: center;
   gap: 8px;
   font-size: 0.9rem;
+}
+
+/* ---------- Перемикач типу гри ---------- */
+.adm-segment {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.adm-segment-options {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--adm-border);
+  border-radius: 12px;
+  background: #050d22;
+  width: fit-content;
+}
+
+.adm-segment-options label {
+  position: relative;
+  cursor: pointer;
+}
+
+.adm-segment-options input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.adm-segment-options span {
+  display: block;
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--adm-muted);
+}
+
+.adm-segment-options input:checked + span {
+  background: var(--adm-accent);
+  color: #000;
+}
+
+.adm-segment-options input:focus-visible + span {
+  outline: 2px solid var(--adm-accent);
+  outline-offset: 2px;
+}
+
+.adm-badge-friendly {
+  margin-left: 8px;
+  background: rgba(201, 211, 234, 0.15);
+  color: #c9d3ea;
 }
 
 /* ---------- Пароль з кнопкою «показати» ---------- */

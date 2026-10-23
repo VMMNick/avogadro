@@ -804,6 +804,35 @@ a {
   background: #c9d3ea;
 }
 
+/* ---------- Товариські ігри ---------- */
+.matches-section .filters {
+  margin-bottom: 30px;
+}
+
+.match-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.match-kind {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--navy-950);
+  background: #c9d3ea;
+  padding: 3px 10px;
+  clip-path: var(--slant);
+}
+
+.match-card.is-friendly::before {
+  background: repeating-linear-gradient(180deg, var(--gold) 0 10px, transparent 10px 16px);
+}
+
 /* ---------- Карта залу ---------- */
 .map-card {
   position: relative;

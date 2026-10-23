@@ -3,43 +3,25 @@ import { TeamSection } from '@/components/site/TeamSection'
 import { EmblemLarge, EmblemSmall } from '@/components/site/Emblem'
 import { HallMap } from '@/components/site/HallMap'
 import { mapLinks, normalizeMapQuery } from '@/lib/maps'
+import { MatchesSection, type PublicMatch } from '@/components/site/MatchesSection'
 import { getSiteContent, splitMatches } from '@/lib/data'
 import { CLUB_NAME, DEFAULT_ABOUT, DEFAULT_TAGLINE } from '@/lib/constants'
-import { formatDateTime } from '@/lib/format'
 import type { Match } from '@/db/schema'
 
 // Сторінка кешується і оновлюється одразу після змін в адмінці;
 // раз на 10 хвилин — додатково, щоб матчі вчасно переходили в «Результати».
 export const revalidate = 600
 
-function MatchCard({ match, past }: { match: Match; past: boolean }) {
-  const hasScore = match.ourSets !== null && match.theirSets !== null
-  const result = hasScore ? (match.ourSets! > match.theirSets! ? ' is-win' : ' is-loss') : ''
-  return (
-    <article className={`match-card${past ? ' is-past' : ''}`}>
-      <div className="match-date">
-        <time dateTime={match.startsAt.toISOString()}>{formatDateTime(match.startsAt)}</time>
-      </div>
-      <div className="teams-vs">
-        <span className="team-title">{CLUB_NAME}</span>
-        {hasScore ? (
-          <span className={`match-score${result}`}>
-            {match.ourSets}:{match.theirSets}
-          </span>
-        ) : (
-          <span className="vs-badge">{past ? '—' : 'VS'}</span>
-        )}
-        <span className="team-title">{match.opponent}</span>
-      </div>
-      {match.location && (
-        <div className="match-location">
-          <a href={mapLinks(match.location).open} target="_blank" rel="noopener noreferrer">
-            📍 {match.location}
-          </a>
-        </div>
-      )}
-    </article>
-  )
+function toPublicMatch(m: Match): PublicMatch {
+  return {
+    id: m.id,
+    opponent: m.opponent,
+    startsAt: m.startsAt.toISOString(),
+    location: m.location,
+    ourSets: m.ourSets,
+    theirSets: m.theirSets,
+    kind: m.kind,
+  }
 }
 
 export default async function HomePage() {
@@ -166,28 +148,7 @@ export default async function HomePage() {
         <section id="matches" className="section matches-section">
           <div className="container">
             <h2 className="section-title">Матчі</h2>
-            <div className="matches-columns">
-              <div>
-                <h3 className="subsection-title">Найближчі ігри</h3>
-                <div className="match-list">
-                  {upcoming.length ? (
-                    upcoming.map((m) => <MatchCard key={m.id} match={m} past={false} />)
-                  ) : (
-                    <p className="state-message">Найближчих ігор поки не заплановано.</p>
-                  )}
-                </div>
-              </div>
-              <div>
-                <h3 className="subsection-title">Результати</h3>
-                <div className="match-list">
-                  {past.length ? (
-                    past.map((m) => <MatchCard key={m.id} match={m} past />)
-                  ) : (
-                    <p className="state-message">Результатів ще немає.</p>
-                  )}
-                </div>
-              </div>
-            </div>
+            <MatchesSection upcoming={upcoming.map(toPublicMatch)} past={past.map(toPublicMatch)} />
           </div>
         </section>
 

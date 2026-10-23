@@ -130,7 +130,7 @@ export async function deletePlayerAction(formData: FormData) {
 
 export async function saveMatchAction(_prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin()
-  const raw = formToObject(formData, ['opponent', 'startsAt', 'location', 'ourSets', 'theirSets'])
+  const raw = formToObject(formData, ['opponent', 'startsAt', 'location', 'ourSets', 'theirSets', 'kind'])
   const parsed = matchSchema.safeParse(raw)
   if (!parsed.success) return { errors: fieldErrors(parsed.error), values: raw }
 

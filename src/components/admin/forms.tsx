@@ -104,16 +104,42 @@ export type MatchFormValues = {
   location: string | null
   ourSets: number | null
   theirSets: number | null
+  kind: 'official' | 'friendly'
 }
 
-export function MatchForm({ match }: { match?: MatchFormValues }) {
+export function MatchForm({
+  match,
+  initialKind = 'official',
+}: {
+  match?: MatchFormValues
+  initialKind?: 'official' | 'friendly'
+}) {
   const [state, action] = useActionState(saveMatchAction, initial)
   const e = state.errors ?? {}
+  const kind = pick(state, 'kind', match?.kind ?? initialKind)
   return (
     <form action={action} className="adm-form adm-card" key={formKey(state)}>
       {match?.id && <input type="hidden" name="id" value={match.id} />}
       <FormMessage state={state} />
       <div className="adm-form-grid">
+        <fieldset className="adm-field is-wide adm-segment">
+          <legend className="adm-label">Тип гри</legend>
+          <div className="adm-segment-options">
+            <label>
+              <input type="radio" name="kind" value="official" defaultChecked={kind !== 'friendly'} />
+              <span>Офіційний матч</span>
+            </label>
+            <label>
+              <input type="radio" name="kind" value="friendly" defaultChecked={kind === 'friendly'} />
+              <span>Товариська гра</span>
+            </label>
+          </div>
+          {e.kind && (
+            <span className="adm-error" role="alert">
+              {e.kind}
+            </span>
+          )}
+        </fieldset>
         <Field name="opponent" label="Суперник" error={e.opponent}>
           <input className="adm-input" defaultValue={pick(state, 'opponent', match?.opponent)} required maxLength={80} {...inputProps('opponent', state)} />
         </Field>
@@ -167,7 +193,7 @@ export function MatchForm({ match }: { match?: MatchFormValues }) {
         </div>
       </div>
       <div className="adm-actions">
-        <SubmitButton>{match?.id ? 'Зберегти зміни' : 'Додати матч'}</SubmitButton>
+        <SubmitButton>{match?.id ? 'Зберегти зміни' : initialKind === 'friendly' ? 'Додати гру' : 'Додати матч'}</SubmitButton>
         <Link href="/admin/matches" className="adm-btn">
           Скасувати
         </Link>

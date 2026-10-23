@@ -15,6 +15,9 @@ import { sql } from 'drizzle-orm'
 export const PLAYER_ROLES = ['setter', 'spiker', 'middle', 'opposite', 'libero', 'staff'] as const
 export type PlayerRole = (typeof PLAYER_ROLES)[number]
 
+export const MATCH_KINDS = ['official', 'friendly'] as const
+export type MatchKind = (typeof MATCH_KINDS)[number]
+
 const timestamps = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -52,10 +55,13 @@ export const matches = pgTable(
     // Сети «Авогадро» та суперника; обидва null, поки гра не зіграна
     ourSets: smallint('our_sets'),
     theirSets: smallint('their_sets'),
+    // Офіційний матч чи товариська гра
+    kind: varchar('kind', { length: 16 }).$type<MatchKind>().notNull().default('official'),
     ...timestamps,
   },
   (t) => [
     index('matches_starts_at_idx').on(t.startsAt),
+    check('matches_kind_valid', sql`${t.kind} IN ('official','friendly')`),
     check(
       'matches_score_valid',
       sql`(${t.ourSets} IS NULL AND ${t.theirSets} IS NULL) OR (${t.ourSets} BETWEEN 0 AND 3 AND ${t.theirSets} BETWEEN 0 AND 3)`,

@@ -13,9 +13,14 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
     <>
       <div className="adm-page-head">
         <h1>Матчі</h1>
-        <Link href="/admin/matches/new" className="adm-btn adm-btn-primary">
-          + Додати матч
-        </Link>
+        <div className="adm-actions">
+          <Link href="/admin/matches/new" className="adm-btn adm-btn-primary">
+            + Матч
+          </Link>
+          <Link href="/admin/matches/new?kind=friendly" className="adm-btn adm-btn-primary">
+            + Товариська гра
+          </Link>
+        </div>
       </div>
       <Flash params={params} />
       <section className="adm-card">
@@ -39,6 +44,7 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
                     <td>{formatDateShort(m.startsAt)}</td>
                     <td>
                       <Link href={`/admin/matches/${m.id}`}>{m.opponent}</Link>
+                      {m.kind === 'friendly' && <span className="adm-badge adm-badge-friendly">Товариська</span>}
                     </td>
                     <td>
                       {m.status === 'played' ? (

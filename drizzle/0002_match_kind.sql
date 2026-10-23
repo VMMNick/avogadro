@@ -1,0 +1,2 @@
+ALTER TABLE "matches" ADD COLUMN "kind" varchar(16) DEFAULT 'official' NOT NULL;--> statement-breakpoint
+ALTER TABLE "matches" ADD CONSTRAINT "matches_kind_valid" CHECK ("matches"."kind" IN ('official','friendly'));

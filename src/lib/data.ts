@@ -33,8 +33,9 @@ export async function getSiteContent(): Promise<SiteContent> {
 export function splitMatches(matches: Match[], now = Date.now()) {
   const isPast = (m: Match) => m.ourSets !== null || m.startsAt.getTime() < now - 3 * 3600_000
   return {
-    upcoming: matches.filter((m) => !isPast(m)).slice(0, 6),
-    past: matches.filter(isPast).reverse().slice(0, 6),
+    // З запасом: на сайті ще є фільтр «Офіційні / Товариські», який показує до 6 у кожній колонці
+    upcoming: matches.filter((m) => !isPast(m)).slice(0, 30),
+    past: matches.filter(isPast).reverse().slice(0, 30),
   }
 }
 

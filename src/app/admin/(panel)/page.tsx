@@ -33,6 +33,9 @@ export default async function DashboardPage() {
           <Link href="/admin/matches/new" className="adm-btn adm-btn-primary">
             + Матч
           </Link>
+          <Link href="/admin/matches/new?kind=friendly" className="adm-btn adm-btn-primary">
+            + Товариська гра
+          </Link>
           <Link href="/admin/settings" className="adm-btn">
             Тексти й контакти
           </Link>

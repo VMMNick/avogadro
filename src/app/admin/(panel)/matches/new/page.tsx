@@ -1,14 +1,16 @@
 import { MatchForm } from '@/components/admin/forms'
 
-export const metadata = { title: 'Новий матч' }
+export const metadata = { title: 'Нова гра' }
 
-export default function NewMatchPage() {
+export default async function NewMatchPage({ searchParams }: { searchParams: Promise<{ kind?: string }> }) {
+  const { kind } = await searchParams
+  const friendly = kind === 'friendly'
   return (
     <>
       <div className="adm-page-head">
-        <h1>Новий матч</h1>
+        <h1>{friendly ? 'Нова товариська гра' : 'Новий матч'}</h1>
       </div>
-      <MatchForm />
+      <MatchForm initialKind={friendly ? 'friendly' : 'official'} />
     </>
   )
 }

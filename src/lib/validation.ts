@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PLAYER_ROLES } from '@/db/schema'
+import { MATCH_KINDS, PLAYER_ROLES } from '@/db/schema'
 import { fromKyivInputValue } from './format'
 import { normalizeMapQuery } from './maps'
 
@@ -48,6 +48,7 @@ export const matchSchema = z
     location: optionalText(120),
     ourSets: z.string().trim(),
     theirSets: z.string().trim(),
+    kind: z.enum(MATCH_KINDS, { message: 'Оберіть тип гри' }),
   })
   .transform((v, ctx) => {
     const parse = (s: string) => (s === '' ? null : Number(s))
@@ -70,7 +71,7 @@ export const matchSchema = z
       ctx.addIssue({ code: 'custom', path: ['ourSets'], message: 'Обидві команди не можуть виграти 3 сети' })
       return z.NEVER
     }
-    return { opponent: v.opponent, startsAt: v.startsAt, location: v.location, ourSets: our, theirSets: their }
+    return { opponent: v.opponent, startsAt: v.startsAt, location: v.location, ourSets: our, theirSets: their, kind: v.kind }
   })
 
 export const settingsSchema = z.object({

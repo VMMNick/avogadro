@@ -28,6 +28,7 @@ export default async function EditMatchPage({ params }: { params: Promise<{ id: 
           location: match.location,
           ourSets: match.ourSets,
           theirSets: match.theirSets,
+          kind: match.kind,
         }}
       />
       <section className="adm-card" style={{ marginTop: 20 }}>
