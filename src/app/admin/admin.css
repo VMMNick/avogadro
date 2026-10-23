@@ -1,0 +1,494 @@
+/* Стилі адмін-панелі. Усі класи з префіксом adm-, щоб не перетинатися із сайтом. */
+.adm {
+  --adm-bg: #050d22;
+  --adm-panel: #081430;
+  --adm-card: #0c1c40;
+  --adm-border: rgba(242, 179, 33, 0.18);
+  --adm-text: #f4f6fb;
+  --adm-muted: #a9b6d3;
+  --adm-accent: #f2b321;
+  --adm-danger: #ef4444;
+  --adm-ok: #22c55e;
+  min-height: 100vh;
+  background: var(--adm-bg);
+  color: var(--adm-text);
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+
+.adm a {
+  color: inherit;
+}
+
+.adm-sidebar {
+  background: var(--adm-panel);
+  border-right: 1px solid var(--adm-border);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  align-self: start;
+}
+
+.adm-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Russo One', system-ui, sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1.5px;
+  padding: 4px 10px 18px;
+  text-decoration: none;
+}
+
+.adm-nav-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--adm-muted) !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.adm-nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--adm-text) !important;
+}
+
+.adm-nav-link.is-active {
+  background: rgba(242, 179, 33, 0.15);
+  color: var(--adm-accent) !important;
+}
+
+.adm-sidebar-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--adm-border);
+  padding-top: 14px;
+  font-size: 0.85rem;
+  color: var(--adm-muted);
+  display: grid;
+  gap: 8px;
+}
+
+.adm-main {
+  padding: 32px clamp(16px, 4vw, 48px) 60px;
+  max-width: 1100px;
+  width: 100%;
+}
+
+.adm-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.adm-page-head h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.adm-muted {
+  color: var(--adm-muted);
+}
+
+.adm-card {
+  min-width: 0;
+  overflow-x: auto;
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.adm-card + .adm-card {
+  margin-top: 20px;
+}
+
+.adm-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+}
+
+.adm-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.adm-stat {
+  text-decoration: none;
+}
+
+.adm-stats .adm-card {
+  margin-top: 0;
+}
+
+.adm-stat strong {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--adm-accent);
+}
+
+/* ---------- Кнопки ---------- */
+.adm-btn {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--adm-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--adm-text) !important;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.adm-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.adm-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.adm-btn-primary {
+  background: var(--adm-accent);
+  border-color: var(--adm-accent);
+  color: #000 !important;
+}
+
+.adm-btn-primary:hover {
+  background: #ffd666;
+}
+
+.adm-btn-danger {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5 !important;
+}
+
+.adm-btn-danger:hover,
+.adm-btn-danger.is-armed {
+  background: var(--adm-danger);
+  color: #fff !important;
+}
+
+.adm-btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.adm-link-btn {
+  background: none;
+  border: 0;
+  color: var(--adm-muted);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+}
+
+/* ---------- Форми ---------- */
+.adm-form {
+  display: grid;
+  gap: 18px;
+}
+
+.adm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.adm-field {
+  display: grid;
+  gap: 6px;
+}
+
+.adm-field.is-wide {
+  grid-column: 1 / -1;
+}
+
+.adm-field label,
+.adm-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.adm-hint {
+  color: var(--adm-muted);
+  font-size: 0.82rem;
+}
+
+.adm-input,
+.adm-select,
+.adm-textarea {
+  font: inherit;
+  width: 100%;
+  background: #050d22;
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  color: var(--adm-text);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+.adm-textarea {
+  min-height: 160px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.adm-input:focus,
+.adm-select:focus,
+.adm-textarea:focus {
+  outline: 2px solid var(--adm-accent);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.adm-input[aria-invalid='true'],
+.adm-select[aria-invalid='true'],
+.adm-textarea[aria-invalid='true'] {
+  border-color: var(--adm-danger);
+}
+
+.adm-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+.adm-error {
+  color: #fca5a5;
+  font-size: 0.85rem;
+}
+
+.adm-alert {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  border: 1px solid;
+}
+
+.adm-alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+}
+
+.adm-alert-ok {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #bbf7d0;
+}
+
+.adm-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.adm-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-score .adm-input {
+  width: 80px;
+  text-align: center;
+}
+
+.adm-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+/* ---------- Фото ---------- */
+.adm-photo {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.adm-photo-preview {
+  width: 120px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #050d22;
+  border: 1px solid var(--adm-border);
+}
+
+/* ---------- Таблиці / списки ---------- */
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93rem;
+}
+
+.adm-table th,
+.adm-table td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--adm-border);
+  vertical-align: middle;
+}
+
+.adm-table th {
+  color: var(--adm-muted);
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.adm-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.adm-thumb {
+  width: 40px;
+  height: 52px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #050d22;
+}
+
+.adm-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.adm-badge-accent {
+  background: rgba(242, 179, 33, 0.2);
+  color: var(--adm-accent);
+}
+
+.adm-empty {
+  text-align: center;
+  padding: 40px 10px;
+  color: var(--adm-muted);
+}
+
+.adm-row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ---------- Вхід ---------- */
+.adm-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #050d22;
+  color: #f4f6fb;
+}
+
+.adm-login .adm-card {
+  width: min(400px, 100%);
+}
+
+.adm-login h1 {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+
+/* ---------- Мобільна версія ---------- */
+@media (max-width: 860px) {
+  .adm {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+  }
+
+  .adm-card {
+    padding: 14px;
+  }
+
+  .adm-table {
+    font-size: 0.86rem;
+  }
+
+  /* На телефоні дії доступні на сторінці редагування — натисніть на назву */
+  .adm-table .adm-actions-col {
+    display: none;
+  }
+
+  .adm-nav-link {
+    white-space: nowrap;
+  }
+
+  .adm-row-actions {
+    flex-wrap: wrap;
+  }
+
+  .adm-table th,
+  .adm-table td {
+    padding: 10px 6px;
+  }
+
+  .adm-sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 12px;
+    gap: 4px;
+    align-content: flex-start;
+  }
+
+  .adm-brand {
+    padding: 4px 8px 8px;
+    width: 100%;
+  }
+
+  .adm-nav-link {
+    padding: 8px 10px;
+    font-size: 0.88rem;
+  }
+
+  .adm-sidebar-footer {
+    margin-top: 6px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 10px;
+  }
+
+  .adm-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-main {
+    padding-top: 20px;
+  }
+
+  .adm-table .adm-hide-sm {
+    display: none;
+  }
+}
