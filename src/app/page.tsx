@@ -2,6 +2,7 @@ import { SiteHeader } from '@/components/site/SiteHeader'
 import { TeamSection } from '@/components/site/TeamSection'
 import { EmblemLarge, EmblemSmall } from '@/components/site/Emblem'
 import { HallMap } from '@/components/site/HallMap'
+import { MotionLayer } from '@/components/site/MotionLayer'
 import { mapLinks, normalizeMapQuery } from '@/lib/maps'
 import { MatchesSection, type PublicMatch } from '@/components/site/MatchesSection'
 import { getSiteContent, splitMatches } from '@/lib/data'
@@ -81,6 +82,7 @@ export default async function HomePage() {
       <a className="skip-link" href="#about">
         Перейти до вмісту
       </a>
+      <MotionLayer />
       <SiteHeader />
 
       <main id="top">
@@ -117,8 +119,8 @@ export default async function HomePage() {
 
         <section id="about" className="section about-section">
           <div className="container">
-            <h2 className="section-title">Про клуб</h2>
-            <div className="about-card">
+            <h2 className="section-title" data-reveal="ribbon">Про клуб</h2>
+            <div className="about-card" data-reveal>
               {about.map((paragraph, i) => (
                 <p key={i}>{paragraph.trim()}</p>
               ))}
@@ -128,7 +130,7 @@ export default async function HomePage() {
 
         <section id="team" className="section team-section">
           <div className="container">
-            <h2 className="section-title">Склад команди</h2>
+            <h2 className="section-title" data-reveal="ribbon">Склад команди</h2>
             {failed ? (
               <p className="state-message is-error">Не вдалося завантажити дані. Спробуйте пізніше.</p>
             ) : (
@@ -147,15 +149,15 @@ export default async function HomePage() {
 
         <section id="matches" className="section matches-section">
           <div className="container">
-            <h2 className="section-title">Матчі</h2>
+            <h2 className="section-title" data-reveal="ribbon">Матчі</h2>
             <MatchesSection upcoming={upcoming.map(toPublicMatch)} past={past.map(toPublicMatch)} />
           </div>
         </section>
 
         <section id="contacts" className="section contacts-section">
           <div className="container">
-            <h2 className="section-title">Контакти</h2>
-            <div className="contacts-grid">
+            <h2 className="section-title" data-reveal="ribbon">Контакти</h2>
+            <div className="contacts-grid" data-reveal="stagger">
               {contacts.length ? (
                 contacts.map((c) => (
                   <div key={c.label} className="contact-card">

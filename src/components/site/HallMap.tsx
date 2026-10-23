@@ -4,7 +4,7 @@ import { mapLinks } from '@/lib/maps'
 export function HallMap({ query, label }: { query: string; label: string | null }) {
   const links = mapLinks(query)
   return (
-    <div className="map-card">
+    <div className="map-card" data-reveal>
       <div className="map-frame">
         <iframe
           src={links.embed}

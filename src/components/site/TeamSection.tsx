@@ -18,7 +18,7 @@ export function TeamSection({ players }: { players: PublicPlayer[] }) {
 
   return (
     <>
-      <div className="filters" role="group" aria-label="Фільтр за амплуа">
+      <div className="filters" data-reveal role="group" aria-label="Фільтр за амплуа">
         {ROLE_FILTERS.map((f) => (
           <button
             key={f.value}
@@ -32,7 +32,7 @@ export function TeamSection({ players }: { players: PublicPlayer[] }) {
         ))}
       </div>
 
-      <div className="team-grid" aria-live="polite">
+      <div className="team-grid" data-reveal="stagger" aria-live="polite">
         {players.length === 0 ? (
           <p className="state-message">Склад команди ще не додано.</p>
         ) : visible.length === 0 ? (

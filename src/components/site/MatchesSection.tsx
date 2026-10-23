@@ -70,7 +70,7 @@ export function MatchesSection({ upcoming, past }: { upcoming: PublicMatch[]; pa
 
   return (
     <>
-      <div className="filters" role="group" aria-label="Тип матчів">
+      <div className="filters" data-reveal role="group" aria-label="Тип матчів">
         {FILTERS.map((f) => (
           <button
             key={f.value}
@@ -85,8 +85,8 @@ export function MatchesSection({ upcoming, past }: { upcoming: PublicMatch[]; pa
       </div>
       <div className="matches-columns" aria-live="polite">
         <div>
-          <h3 className="subsection-title">Найближчі ігри</h3>
-          <div className="match-list">
+          <h3 className="subsection-title" data-reveal>Найближчі ігри</h3>
+          <div className="match-list" data-reveal="stagger">
             {shownUpcoming.length ? (
               shownUpcoming.map((m) => <MatchCard key={m.id} match={m} past={false} />)
             ) : (
@@ -95,8 +95,8 @@ export function MatchesSection({ upcoming, past }: { upcoming: PublicMatch[]; pa
           </div>
         </div>
         <div>
-          <h3 className="subsection-title">Результати</h3>
-          <div className="match-list">
+          <h3 className="subsection-title" data-reveal>Результати</h3>
+          <div className="match-list" data-reveal="stagger">
             {shownPast.length ? (
               shownPast.map((m) => <MatchCard key={m.id} match={m} past />)
             ) : (
