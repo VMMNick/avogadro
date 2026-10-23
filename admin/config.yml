@@ -1,26 +1,12 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: ВАШ_GITHUB_NICK/НАЗВА_РЕПОЗИТОРІЮ
   branch: main
 
 media_folder: "uploads"
 public_folder: "/uploads"
 
 collections:
-  # --- 1. Загальні налаштування сайту ---
-  - name: "settings"
-    label: "Налаштування сайту"
-    files:
-      - file: "content/settings/general.json"
-        label: "Основні контакти та соцмережі"
-        name: "general"
-        fields:
-          - { label: "Назва команди", name: "team_name", widget: "string", default: "ВК Лавина" }
-          - { label: "Слоган", name: "slogan", widget: "string", default: "Граємо серцем. Перемагаємо разом." }
-          - { label: "Адреса домашньої арени", name: "arena_address", widget: "string" }
-          - { label: "Посилання на Instagram", name: "instagram", widget: "string", required: false }
-          - { label: "Посилання на Telegram", name: "telegram", widget: "string", required: false }
-
-  # --- 2. Склад команди (Ростер) ---
   - name: "players"
     label: "Гравці та Штаб"
     folder: "content/players"
@@ -40,15 +26,11 @@ collections:
             { label: "Догравальник", value: "spiker" },
             { label: "Центральний блокуючий", value: "middle" },
             { label: "Діагональний", value: "opposite" },
-            { label: "Ліберо", value: "libero" },
-            { label: "Тренер", value: "coach" }
+            { label: "Ліберо", value: "libero" }
           ] 
         }
-      - { label: "Зріст (см)", name: "height", widget: "number", required: false }
       - { label: "Фото гравця", name: "image", widget: "image", required: false }
-      - { label: "Капітан команди?", name: "is_captain", widget: "boolean", default: false }
 
-  # --- 3. Розклад матчів та результати ---
   - name: "matches"
     label: "Матчі та Результати"
     folder: "content/matches"
@@ -59,7 +41,5 @@ collections:
     fields:
       - { label: "Назва суперника", name: "opponent", widget: "string" }
       - { label: "Дата та час гри", name: "date", widget: "datetime" }
-      - { label: "Назва турніру / Ліги", name: "tournament", widget: "string", default: "Міська Ліга" }
       - { label: "Місце проведення / Зал", name: "location", widget: "string" }
-      - { label: "Ми граємо вдома?", name: "is_home", widget: "boolean", default: true }
-      - { label: "Рахунок (наприклад: 3:1 чи 2:3. Порожньо — якщо матч попереду)", name: "score", widget: "string", required: false }
+      - { label: "Рахунок (якщо гра вже була, наприклад: 3:1)", name: "score", widget: "string", required: false }

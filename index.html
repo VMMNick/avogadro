@@ -3,46 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Волейбольна Команда</title>
+    <title>ВК Лавина — Офіційний сайт</title>
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <div class="logo" id="site-title">ВК LA VINA</div>
+            <div class="logo">🏐 ВК "ЛАВИНА"</div>
             <a href="/admin/" class="btn-admin">Увійти в CMS</a>
         </header>
 
-        <!-- Блок Найближчий матч -->
-        <section style="margin-top: 40px;">
-            <h2>🔥 Найближча гра</h2>
-            <div id="next-match-card" class="card" style="margin-top: 15px;">
-                Завантаження матчу...
-            </div>
-        </section>
+        <div class="hero">
+            <h1>Волейбольна Команда</h1>
+            <p>Граємо серцем. Перемагаємо разом.</p>
 
-        <!-- Блок Склад команди -->
+            <div class="match-card">
+                <div style="font-size:0.85rem; text-transform:uppercase; color:var(--accent); font-weight:800; letter-spacing:1px;">
+                    🔥 Найближча гра • Чемпіонат Міста
+                </div>
+                <div class="teams-vs">
+                    <div class="team-title">ВК "Лавина"</div>
+                    <div class="vs-badge">VS</div>
+                    <div class="team-title">ВК "Сокіл"</div>
+                </div>
+                <div style="color:var(--text-muted); font-size:0.95rem;">
+                    📅 Субота, 28 Жовтня • 🕒 18:00 • 📍 СК "Олімпік"
+                </div>
+            </div>
+        </div>
+
         <section style="margin-top: 40px;">
-            <h2>🏐 Склад Команди</h2>
+            <h2 style="text-align:center; font-size: 2rem;">Склад Команди</h2>
+
+            <div class="filter-container">
+                <button class="filter-btn active" data-filter="all">Усі</button>
+                <button class="filter-btn" data-filter="setter">Зв'язуючі</button>
+                <button class="filter-btn" data-filter="spiker">Догравальники</button>
+                <button class="filter-btn" data-filter="middle">Центральні</button>
+                <button class="filter-btn" data-filter="libero">Ліберо</button>
+            </div>
+
             <div class="grid" id="players-grid">
-                <!-- Картки гравців завантажуються динамічно -->
+                <!-- Картки генеруються за допомогою main.js -->
             </div>
         </section>
     </div>
 
     <script src="js/main.js"></script>
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", user => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
 </body>
 </html>
