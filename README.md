@@ -8,8 +8,8 @@
 | Дані (гравці, матчі, тексти, адміни) | Postgres | Neon (підключається через Vercel → Storage) |
 | Фото гравців | Vercel Blob | Vercel → Storage |
 
-- Сайт: `https://avohadro.vercel.app`
-- Адмінка: `https://avohadro.vercel.app/admin`
+- Сайт: `vk-avogadro.vercel.app`
+- Адмінка: `vk-avogadro.vercel.app/admin`
 
 ## Що можна редагувати в адмінці
 
