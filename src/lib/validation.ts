@@ -17,6 +17,22 @@ const optionalHttpsUrl = z
   .transform((v) => (v === '' ? null : v))
   .refine((v) => v === null || /^https:\/\/[^\s]+$/i.test(v), 'Посилання має починатися з https://')
 
+const mapQueryField = optionalText(200).refine(
+  (v) => v === null || normalizeMapQuery(v) !== null,
+  'Це посилання не можна показати на карті. Вставте адресу або координати: у Google Maps натисніть правою кнопкою на зал і скопіюйте координати.',
+)
+
+export const teamSchema = z.object({
+  name: z.string().trim().min(2, 'Вкажіть назву команди (мінімум 2 символи)').max(80, 'Максимум 80 символів'),
+  city: optionalText(80),
+})
+
+export const venueSchema = z.object({
+  name: z.string().trim().min(2, 'Вкажіть назву залу (мінімум 2 символи)').max(120, 'Максимум 120 символів'),
+  address: optionalText(200),
+  mapQuery: mapQueryField,
+})
+
 export const playerSchema = z.object({
   name: z.string().trim().min(2, "Вкажіть ім'я (мінімум 2 символи)").max(80, 'Максимум 80 символів'),
   number: z
@@ -84,10 +100,7 @@ export const settingsSchema = z.object({
     .transform((v) => (v === '' ? null : v))
     .refine((v) => v === null || z.email().safeParse(v).success, 'Невірний email'),
   address: optionalText(200),
-  mapQuery: optionalText(200).refine(
-    (v) => v === null || normalizeMapQuery(v) !== null,
-    'Це посилання не можна показати на карті. Вставте адресу або координати: у Google Maps натисніть правою кнопкою на зал і скопіюйте координати.',
-  ),
+  mapQuery: mapQueryField,
   instagram: optionalHttpsUrl,
   facebook: optionalHttpsUrl,
   telegram: optionalHttpsUrl,
@@ -103,6 +116,16 @@ export const newAdminSchema = z.object({
   email: z.email('Невірний email').trim().toLowerCase().max(120),
   password: passwordSchema,
 })
+
+export const registerSchema = z
+  .object({
+    name: z.string().trim().min(2, "Вкажіть ім'я").max(80),
+    email: z.email('Невірний email').trim().toLowerCase().max(120),
+    password: passwordSchema,
+    confirm: z.string(),
+    code: z.string().trim().min(1, 'Вкажіть код запрошення').max(200),
+  })
+  .refine((v) => v.password === v.confirm, { path: ['confirm'], message: 'Паролі не збігаються' })
 
 export const changePasswordSchema = z
   .object({

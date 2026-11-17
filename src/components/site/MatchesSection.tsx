@@ -11,6 +11,8 @@ export type PublicMatch = {
   opponent: string
   startsAt: string // ISO
   location: string | null
+  /** Що шукати на карті: дані залу з довідника або сама назва */
+  mapQuery: string | null
   ourSets: number | null
   theirSets: number | null
   kind: MatchKind
@@ -51,7 +53,7 @@ function MatchCard({ match, past }: { match: PublicMatch; past: boolean }) {
       </div>
       {match.location && (
         <div className="match-location">
-          <a href={mapLinks(match.location).open} target="_blank" rel="noopener noreferrer">
+          <a href={mapLinks(match.mapQuery ?? match.location).open} target="_blank" rel="noopener noreferrer">
             📍 {match.location}
           </a>
         </div>

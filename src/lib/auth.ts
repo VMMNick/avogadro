@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { and, count, eq, gte, lt, sql } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { getDb, schema } from '@/db'
 import { SESSION_COOKIE, SESSION_TTL_SECONDS, signSession, verifySession } from './session'
 
@@ -122,4 +123,68 @@ export async function changePassword(adminId: string, current: string, next: str
     .where(eq(schema.admins.id, adminId))
   await startSession(adminId, version)
   return { ok: true as const }
+}
+
+// ---------- Реєстрація за кодом запрошення ----------
+
+const MIN_INVITE_LENGTH = 8
+
+/** Код запрошення з налаштувань Vercel (ADMIN_INVITE_CODE). Без нього реєстрація вимкнена. */
+function inviteCode() {
+  const code = process.env.ADMIN_INVITE_CODE?.trim()
+  return code && code.length >= MIN_INVITE_LENGTH ? code : null
+}
+
+export function registrationEnabled() {
+  return inviteCode() !== null
+}
+
+function sameSecret(a: string, b: string) {
+  const ha = createHash('sha256').update(a).digest()
+  const hb = createHash('sha256').update(b).digest()
+  return timingSafeEqual(ha, hb)
+}
+
+export type RegisterResult =
+  | { ok: true }
+  | { ok: false; error: string; field?: 'code' | 'email' }
+
+export async function register(
+  data: { name: string; email: string; password: string; code: string },
+  ip: string,
+): Promise<RegisterResult> {
+  const expected = inviteCode()
+  if (!expected) return { ok: false, error: 'Реєстрацію вимкнено. Попросіть адміністратора додати вас.' }
+
+  const db = getDb()
+  const key = `register|${ip}`.slice(0, 200)
+  const since = new Date(Date.now() - LOCK_WINDOW_MINUTES * 60_000)
+  await db.delete(schema.loginAttempts).where(lt(schema.loginAttempts.createdAt, since))
+  const [{ value: failed }] = await db
+    .select({ value: count() })
+    .from(schema.loginAttempts)
+    .where(and(eq(schema.loginAttempts.key, key), gte(schema.loginAttempts.createdAt, since)))
+  if (failed >= MAX_FAILED_ATTEMPTS) {
+    return { ok: false, error: `Забагато невдалих спроб. Спробуйте через ${LOCK_WINDOW_MINUTES} хвилин.` }
+  }
+
+  if (!sameSecret(data.code, expected)) {
+    await db.insert(schema.loginAttempts).values({ key })
+    return { ok: false, field: 'code', error: 'Невірний код запрошення' }
+  }
+
+  const [exists] = await db
+    .select({ id: schema.admins.id })
+    .from(schema.admins)
+    .where(sql`lower(${schema.admins.email}) = ${data.email}`)
+    .limit(1)
+  if (exists) return { ok: false, field: 'email', error: 'Адміністратор з таким email уже існує — увійдіть' }
+
+  const [admin] = await db
+    .insert(schema.admins)
+    .values({ name: data.name, email: data.email, passwordHash: await hashPassword(data.password) })
+    .returning({ id: schema.admins.id, sessionVersion: schema.admins.sessionVersion })
+  await db.delete(schema.loginAttempts).where(eq(schema.loginAttempts.key, key))
+  await startSession(admin.id, admin.sessionVersion)
+  return { ok: true }
 }

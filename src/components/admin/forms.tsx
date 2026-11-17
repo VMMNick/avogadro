@@ -1,14 +1,17 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import {
   changePasswordAction,
   createAdminAction,
   loginAction,
+  registerAction,
   saveMatchAction,
   savePlayerAction,
   saveSettingsAction,
+  saveTeamAction,
+  saveVenueAction,
 } from '@/app/admin/actions'
 import { PLAYER_ROLES } from '@/db/schema'
 import { ROLE_LABELS } from '@/lib/constants'
@@ -38,6 +41,32 @@ export function LoginForm() {
         <PasswordInput autoComplete="current-password" required {...inputProps('password', state)} />
       </Field>
       <SubmitButton pendingText="Входжу…">Увійти</SubmitButton>
+    </form>
+  )
+}
+
+export function RegisterForm() {
+  const [state, action] = useActionState(registerAction, initial)
+  const e = state.errors ?? {}
+  return (
+    <form action={action} className="adm-form" key={formKey(state)}>
+      <FormMessage state={state} />
+      <Field name="name" label="Ім'я" error={e.name}>
+        <input className="adm-input" required maxLength={80} autoComplete="name" defaultValue={pick(state, 'name', '')} {...inputProps('name', state)} />
+      </Field>
+      <Field name="email" label="Email" error={e.email}>
+        <input className="adm-input" type="email" required autoComplete="username" defaultValue={pick(state, 'email', '')} {...inputProps('email', state)} />
+      </Field>
+      <Field name="password" label="Пароль" error={e.password} hint="Мінімум 10 символів">
+        <PasswordInput required minLength={10} autoComplete="new-password" {...inputProps('password', state)} />
+      </Field>
+      <Field name="confirm" label="Повторіть пароль" error={e.confirm}>
+        <PasswordInput required autoComplete="new-password" {...inputProps('confirm', state)} />
+      </Field>
+      <Field name="code" label="Код запрошення" error={e.code} hint="Отримайте його в адміністратора клубу">
+        <PasswordInput required autoComplete="off" {...inputProps('code', state)} />
+      </Field>
+      <SubmitButton pendingText="Реєструю…">Зареєструватися</SubmitButton>
     </form>
   )
 }
@@ -105,18 +134,125 @@ export type MatchFormValues = {
   ourSets: number | null
   theirSets: number | null
   kind: 'official' | 'friendly'
+  teamId: string | null
+  venueId: string | null
+}
+
+export type DirectoryOption = { id: string; label: string }
+
+/** Вибір із довідника або введення вручну (з галочкою «додати до довідника»). */
+function DirectoryPicker({
+  label,
+  selectName,
+  textName,
+  saveName,
+  options,
+  initialChoice,
+  initialText,
+  placeholder,
+  newLabel,
+  saveLabel,
+  manageHref,
+  error,
+  maxLength,
+  required,
+  initialSave,
+}: {
+  label: string
+  selectName: string
+  textName: string
+  saveName: string
+  options: DirectoryOption[]
+  initialChoice: string
+  initialText: string
+  placeholder: string
+  newLabel: string
+  saveLabel: string
+  manageHref: string
+  error?: string
+  maxLength: number
+  required?: boolean
+  initialSave: boolean
+}) {
+  const [choice, setChoice] = useState(initialChoice)
+  const manual = choice === 'new'
+  return (
+    <div className="adm-field is-wide">
+      <label htmlFor={selectName}>{label}</label>
+      <div className="adm-picker">
+        <select
+          id={selectName}
+          name={selectName}
+          className="adm-select"
+          value={choice}
+          onChange={(ev) => setChoice(ev.target.value)}
+          required={required}
+          aria-invalid={error && !manual ? true : undefined}
+        >
+          <option value="" disabled={required}>
+            {placeholder}
+          </option>
+          {options.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
+          ))}
+          <option value="new">{newLabel}</option>
+        </select>
+        {manual && (
+          <input
+            className="adm-input"
+            id={textName}
+            name={textName}
+            aria-label={`${label}: назва`}
+            defaultValue={initialText}
+            maxLength={maxLength}
+            required={required}
+            autoFocus={initialChoice !== 'new'}
+            aria-invalid={error ? true : undefined}
+          />
+        )}
+      </div>
+      {manual && (
+        <label className="adm-check">
+          <input type="checkbox" name={saveName} defaultChecked={initialSave} />
+          {saveLabel}
+        </label>
+      )}
+      {error ? (
+        <span className="adm-error" role="alert">
+          {error}
+        </span>
+      ) : (
+        <span className="adm-hint">
+          Список редагується в розділі <Link href={manageHref}>{label === 'Суперник' ? '«Команди»' : '«Зали»'}</Link>.
+        </span>
+      )}
+    </div>
+  )
 }
 
 export function MatchForm({
   match,
   initialKind = 'official',
+  teams,
+  venues,
 }: {
   match?: MatchFormValues
   initialKind?: 'official' | 'friendly'
+  teams: DirectoryOption[]
+  venues: DirectoryOption[]
 }) {
   const [state, action] = useActionState(saveMatchAction, initial)
   const e = state.errors ?? {}
   const kind = pick(state, 'kind', match?.kind ?? initialKind)
+  // Існуючий матч без зв'язку з довідником (старі записи) — показуємо як введений вручну
+  const teamChoice = pick(state, 'teamId', match ? (match.teamId ?? 'new') : teams.length ? '' : 'new')
+  const venueChoice = pick(state, 'venueId', match ? (match.venueId ?? (match.location ? 'new' : '')) : '')
+  // Галочку «додати до довідника» зберігаємо лише якщо поле ручного вводу вже було відкрите
+  const v = state.values
+  const saveTeam = v?.teamId === 'new' ? v.saveTeam === 'on' : true
+  const saveVenue = v?.venueId === 'new' ? v.saveVenue === 'on' : true
   return (
     <form action={action} className="adm-form adm-card" key={formKey(state)}>
       {match?.id && <input type="hidden" name="id" value={match.id} />}
@@ -140,9 +276,23 @@ export function MatchForm({
             </span>
           )}
         </fieldset>
-        <Field name="opponent" label="Суперник" error={e.opponent}>
-          <input className="adm-input" defaultValue={pick(state, 'opponent', match?.opponent)} required maxLength={80} {...inputProps('opponent', state)} />
-        </Field>
+        <DirectoryPicker
+          label="Суперник"
+          selectName="teamId"
+          textName="opponent"
+          saveName="saveTeam"
+          options={teams}
+          initialChoice={teamChoice}
+          initialText={pick(state, 'opponent', match?.opponent)}
+          placeholder="Оберіть команду…"
+          newLabel="+ Інша команда (ввести назву)"
+          saveLabel="Додати команду до довідника"
+          manageHref="/admin/teams"
+          error={e.opponent}
+          maxLength={80}
+          required
+          initialSave={saveTeam}
+        />
         <Field name="startsAt" label="Дата та час (за Києвом)" error={e.startsAt}>
           <input
             className="adm-input"
@@ -153,9 +303,22 @@ export function MatchForm({
             {...inputProps('startsAt', state)}
           />
         </Field>
-        <Field name="location" label="Місце проведення / Зал" error={e.location} wide>
-          <input className="adm-input" defaultValue={pick(state, 'location', match?.location)} maxLength={120} {...inputProps('location', state)} />
-        </Field>
+        <DirectoryPicker
+          label="Зал"
+          selectName="venueId"
+          textName="location"
+          saveName="saveVenue"
+          options={venues}
+          initialChoice={venueChoice}
+          initialText={pick(state, 'location', match?.location)}
+          placeholder="— Не вказано —"
+          newLabel="+ Інший зал (ввести назву)"
+          saveLabel="Додати зал до довідника"
+          manageHref="/admin/venues"
+          error={e.location}
+          maxLength={120}
+          initialSave={saveVenue}
+        />
         <div className="adm-field is-wide">
           <span className="adm-label">Рахунок за сетами (після гри)</span>
           <div className="adm-score">
@@ -195,6 +358,71 @@ export function MatchForm({
       <div className="adm-actions">
         <SubmitButton>{match?.id ? 'Зберегти зміни' : initialKind === 'friendly' ? 'Додати гру' : 'Додати матч'}</SubmitButton>
         <Link href="/admin/matches" className="adm-btn">
+          Скасувати
+        </Link>
+      </div>
+    </form>
+  )
+}
+
+export type TeamFormValues = { id?: string; name: string; city: string | null }
+
+export function TeamForm({ team }: { team?: TeamFormValues }) {
+  const [state, action] = useActionState(saveTeamAction, initial)
+  const e = state.errors ?? {}
+  return (
+    <form action={action} className="adm-form adm-card" key={formKey(state)}>
+      {team?.id && <input type="hidden" name="id" value={team.id} />}
+      <FormMessage state={state} />
+      <div className="adm-form-grid">
+        <Field name="name" label="Назва команди" error={e.name}>
+          <input className="adm-input" defaultValue={pick(state, 'name', team?.name)} required maxLength={80} {...inputProps('name', state)} />
+        </Field>
+        <Field name="city" label="Місто" error={e.city} hint="Необов'язково">
+          <input className="adm-input" defaultValue={pick(state, 'city', team?.city)} maxLength={80} {...inputProps('city', state)} />
+        </Field>
+      </div>
+      {team?.id && <p className="adm-hint">Якщо змінити назву, вона оновиться і в усіх матчах з цією командою.</p>}
+      <div className="adm-actions">
+        <SubmitButton>{team?.id ? 'Зберегти зміни' : 'Додати команду'}</SubmitButton>
+        <Link href="/admin/teams" className="adm-btn">
+          Скасувати
+        </Link>
+      </div>
+    </form>
+  )
+}
+
+export type VenueFormValues = { id?: string; name: string; address: string | null; mapQuery: string | null }
+
+export function VenueForm({ venue }: { venue?: VenueFormValues }) {
+  const [state, action] = useActionState(saveVenueAction, initial)
+  const e = state.errors ?? {}
+  return (
+    <form action={action} className="adm-form adm-card" key={formKey(state)}>
+      {venue?.id && <input type="hidden" name="id" value={venue.id} />}
+      <FormMessage state={state} />
+      <div className="adm-form-grid">
+        <Field name="name" label="Назва залу" error={e.name} wide>
+          <input className="adm-input" defaultValue={pick(state, 'name', venue?.name)} required maxLength={120} placeholder="СК «Юність»" {...inputProps('name', state)} />
+        </Field>
+        <Field name="address" label="Адреса" error={e.address} wide hint="Необов'язково. Показується підказкою у формі матчу.">
+          <input className="adm-input" defaultValue={pick(state, 'address', venue?.address)} maxLength={200} placeholder="вул. Прикладна, 1, Київ" {...inputProps('address', state)} />
+        </Field>
+        <Field
+          name="mapQuery"
+          label="Місце на карті"
+          error={e.mapQuery}
+          wide
+          hint="Адреса або координати (50.4501, 30.5234), чи повне посилання Google Maps з «@координатами». Порожньо — карта шукатиме за адресою або назвою."
+        >
+          <input className="adm-input" defaultValue={pick(state, 'mapQuery', venue?.mapQuery)} maxLength={200} {...inputProps('mapQuery', state)} />
+        </Field>
+      </div>
+      {venue?.id && <p className="adm-hint">Якщо змінити назву, вона оновиться і в усіх матчах у цьому залі.</p>}
+      <div className="adm-actions">
+        <SubmitButton>{venue?.id ? 'Зберегти зміни' : 'Додати зал'}</SubmitButton>
+        <Link href="/admin/venues" className="adm-btn">
           Скасувати
         </Link>
       </div>

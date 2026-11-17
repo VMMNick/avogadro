@@ -5,6 +5,8 @@ import { DeleteButton } from '@/components/admin/ui'
 import { deleteMatchAction } from '../../../actions'
 import { MatchForm } from '@/components/admin/forms'
 import { toKyivInputValue } from '@/lib/format'
+import { getDirectoryOptions } from '@/lib/data'
+import { toOptions } from '@/lib/directory'
 
 export const metadata = { title: 'Редагування матчу' }
 
@@ -13,8 +15,12 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export default async function EditMatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   if (!UUID_RE.test(id)) notFound()
-  const [match] = await getDb().select().from(schema.matches).where(eq(schema.matches.id, id)).limit(1)
+  const [[match], dirs] = await Promise.all([
+    getDb().select().from(schema.matches).where(eq(schema.matches.id, id)).limit(1),
+    getDirectoryOptions(),
+  ])
   if (!match) notFound()
+  const { teams, venues } = toOptions(dirs)
   return (
     <>
       <div className="adm-page-head">
@@ -29,7 +35,11 @@ export default async function EditMatchPage({ params }: { params: Promise<{ id: 
           ourSets: match.ourSets,
           theirSets: match.theirSets,
           kind: match.kind,
+          teamId: match.teamId,
+          venueId: match.venueId,
         }}
+        teams={teams}
+        venues={venues}
       />
       <section className="adm-card" style={{ marginTop: 20 }}>
         <h2>Видалення</h2>

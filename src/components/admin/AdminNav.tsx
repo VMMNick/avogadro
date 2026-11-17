@@ -7,6 +7,8 @@ const LINKS = [
   { href: '/admin', label: 'Огляд', exact: true },
   { href: '/admin/players', label: 'Гравці та штаб' },
   { href: '/admin/matches', label: 'Матчі' },
+  { href: '/admin/teams', label: 'Команди' },
+  { href: '/admin/venues', label: 'Зали' },
   { href: '/admin/settings', label: 'Налаштування сайту' },
   { href: '/admin/admins', label: 'Адміністратори' },
 ]

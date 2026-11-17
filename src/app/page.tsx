@@ -7,14 +7,16 @@ import { mapLinks, normalizeMapQuery } from '@/lib/maps'
 import { MatchesSection, type PublicMatch } from '@/components/site/MatchesSection'
 import { getSiteContent, splitMatches } from '@/lib/data'
 import { CLUB_NAME, DEFAULT_ABOUT, DEFAULT_TAGLINE } from '@/lib/constants'
-import type { Match } from '@/db/schema'
+import type { Match, Venue } from '@/db/schema'
 
 // Сторінка кешується і оновлюється одразу після змін в адмінці;
 // раз на 10 хвилин — додатково, щоб матчі вчасно переходили в «Результати».
 export const revalidate = 600
 
-function toPublicMatch(m: Match): PublicMatch {
+function toPublicMatch(m: Match, venues: Map<string, Venue>): PublicMatch {
+  const venue = m.venueId ? venues.get(m.venueId) : undefined
   return {
+    mapQuery: venue ? (normalizeMapQuery(venue.mapQuery) ?? normalizeMapQuery(venue.address) ?? venue.name) : null,
     id: m.id,
     opponent: m.opponent,
     startsAt: m.startsAt.toISOString(),
@@ -26,7 +28,9 @@ function toPublicMatch(m: Match): PublicMatch {
 }
 
 export default async function HomePage() {
-  const { players, matches, settings, failed } = await getSiteContent()
+  const { players, matches, settings, venues, failed } = await getSiteContent()
+  const venueById = new Map(venues.map((v) => [v.id, v]))
+  const toPublic = (m: Match) => toPublicMatch(m, venueById)
   const { upcoming, past } = splitMatches(matches)
   const about = (settings?.about || DEFAULT_ABOUT)
     .split(/\r?\n\s*\r?\n/)
@@ -150,7 +154,7 @@ export default async function HomePage() {
         <section id="matches" className="section matches-section">
           <div className="container">
             <h2 className="section-title" data-reveal="ribbon">Матчі</h2>
-            <MatchesSection upcoming={upcoming.map(toPublicMatch)} past={past.map(toPublicMatch)} />
+            <MatchesSection upcoming={upcoming.map(toPublic)} past={past.map(toPublic)} />
           </div>
         </section>
 

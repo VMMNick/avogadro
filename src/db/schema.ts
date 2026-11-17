@@ -45,13 +45,42 @@ export const players = pgTable(
   ],
 )
 
+// Довідник команд-суперників
+export const teams = pgTable(
+  'teams',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 80 }).notNull(),
+    city: varchar('city', { length: 80 }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('teams_name_unique').on(sql`lower(${t.name})`)],
+)
+
+// Довідник залів
+export const venues = pgTable(
+  'venues',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 120 }).notNull(),
+    address: varchar('address', { length: 200 }),
+    // Що показувати на карті: адреса, назва або координати
+    mapQuery: varchar('map_query', { length: 200 }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('venues_name_unique').on(sql`lower(${t.name})`)],
+)
+
 export const matches = pgTable(
   'matches',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    // Назва суперника зберігається і в самому матчі — щоб гра не «губилась», якщо команду видалять
     opponent: varchar('opponent', { length: 80 }).notNull(),
+    teamId: uuid('team_id').references(() => teams.id, { onDelete: 'set null' }),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
     location: varchar('location', { length: 120 }),
+    venueId: uuid('venue_id').references(() => venues.id, { onDelete: 'set null' }),
     // Сети «Авогадро» та суперника; обидва null, поки гра не зіграна
     ourSets: smallint('our_sets'),
     theirSets: smallint('their_sets'),
@@ -120,3 +149,5 @@ export type Player = typeof players.$inferSelect
 export type Match = typeof matches.$inferSelect
 export type Settings = typeof settings.$inferSelect
 export type Admin = typeof admins.$inferSelect
+export type Team = typeof teams.$inferSelect
+export type Venue = typeof venues.$inferSelect

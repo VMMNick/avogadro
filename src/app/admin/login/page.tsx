@@ -24,8 +24,9 @@ export default async function LoginPage() {
           ВК «Авогадро»
         </p>
         <LoginForm />
-        <p className="adm-muted" style={{ marginTop: 18, fontSize: '0.85rem' }}>
+        <p className="adm-muted adm-login-links">
           <Link href="/">← На сайт</Link>
+          <Link href="/admin/register">Реєстрація</Link>
         </p>
       </div>
     </main>

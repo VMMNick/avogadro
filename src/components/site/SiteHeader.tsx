@@ -56,14 +56,6 @@ export function SiteHeader() {
                 {l.label}
               </a>
             ))}
-            <a
-              href="/admin"
-              className="btn-admin"
-              rel="nofollow"
-              style={{ '--i': LINKS.length } as React.CSSProperties}
-            >
-              Адмін-панель
-            </a>
           </nav>
         </div>
         <span className="scroll-progress" aria-hidden="true" />
