@@ -2,6 +2,8 @@
   "name": "avohadro",
   "version": "2.0.0",
   "private": true,
+  "license": "MIT",
+  "author": "Mykola Vorobkanych",
   "type": "module",
   "engines": {
     "node": ">=20.9"
