@@ -174,4 +174,44 @@ test.describe('сети, склад, MVP, турнірна таблиця, ло�
     ok((await page.locator('tr', { hasText: 'Барком' }).locator('img').count()) === 0, 'логотип прибрано')
     ok(errors.length === 0, `без помилок JS: ${errors.join('; ')}`)
   })
+
+  test('пошук у списку матчів адмінки', async ({ page }) => {
+    await login(page)
+    await page.goto('/admin/matches?sort=opponent-asc')
+    const rows = page.locator('.adm-table tbody tr')
+    await expect(rows).toHaveCount(6)
+
+    await page.fill('#q', 'азот')
+    await expect(rows).toHaveCount(1)
+    ok(page.url().includes('sort=opponent-asc') && page.url().includes('q='), 'сортування зберігається разом із пошуком')
+    await expect(page.locator('.adm-search')).toContainText('Знайдено: 1')
+
+    await page.fill('#q', '3:2')
+    await expect(rows.first()).toContainText('Барком')
+    await expect(rows).toHaveCount(1)
+
+    await page.fill('#q', 'товариська')
+    await expect(rows.first()).toContainText('Епіцентр')
+    await expect(rows).toHaveCount(1)
+
+    await page.fill('#q', 'чемпіонат барком')
+    await expect(rows).toHaveCount(2)
+
+    await page.fill('#q', 'юність')
+    await expect(rows).toHaveCount(6)
+
+    // Сезон + пошук
+    await page.fill('#q', 'барком')
+    await expect(rows).toHaveCount(3)
+    await page.locator('nav[aria-label="Сезон"] a').nth(2).click()
+    await page.waitForURL(/season=/)
+    ok(page.url().includes('q=') && (await page.inputValue('#q')) === 'барком', 'пошук зберігається при зміні сезону')
+    await expect(rows).toHaveCount(1)
+
+    await page.fill('#q', 'немає такого')
+    await expect(page.locator('.adm-empty')).toContainText('нічого не знайдено')
+    await page.click('.adm-search button:has-text("Очистити")')
+    await expect(rows).toHaveCount(1)
+    ok(!page.url().includes('q='), 'очищення прибирає запит з адреси')
+  })
 })

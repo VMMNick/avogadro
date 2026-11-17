@@ -45,13 +45,15 @@ test('товариські ігри: окрема кнопка, тип у фор
   ok((await page.locator('.adm-badge-friendly').count()) === 2, 'у списку 2 позначки «Товариська»')
 
   await page.click('a:has-text("Спартак")')
+  await page.waitForURL(/\/admin\/matches\/[0-9a-f-]{36}$/)
   ok(await page.isChecked('input[name=kind][value=friendly]'), 'редагування: тип збережено')
-  await page.click('text=Офіційний матч')
+  await page.click('label:has-text("Офіційний матч")')
   await page.click('main button[type=submit]')
   await page.waitForURL(/saved/)
   ok((await page.locator('.adm-badge-friendly').count()) === 1, 'тип змінено на офіційний')
   await page.click('a:has-text("Спартак")')
-  await page.click('text=Товариська гра')
+  await page.waitForURL(/\/admin\/matches\/[0-9a-f-]{36}$/)
+  await page.click('label:has-text("Товариська гра")')
   await page.click('main button[type=submit]')
   await page.waitForURL(/saved/)
 

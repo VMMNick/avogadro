@@ -17,8 +17,12 @@ export function SearchBox({ placeholder, label, found }: { placeholder: string; 
   useEffect(() => () => clearTimeout(timer.current), [])
 
   const apply = (q: string) => {
-    const next = new URLSearchParams()
+    // Інші параметри (сортування, сезон) зберігаємо; повідомлення «Збережено» прибираємо
+    const next = new URLSearchParams(params)
+    next.delete('saved')
+    next.delete('deleted')
     if (q.trim()) next.set('q', q.trim())
+    else next.delete('q')
     startTransition(() => router.replace(next.size ? `?${next}` : '?', { scroll: false }))
   }
 

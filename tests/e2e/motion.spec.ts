@@ -1,4 +1,4 @@
-import { test } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import { noHorizontalScroll, ok, resetDb } from './helpers'
 
 test.beforeEach(async ({ request }) => resetDb(request, 'demo'))
@@ -20,19 +20,21 @@ test('телефон: анімований фон, поява блоків, мо
     'контакти сховані до прокрутки',
   )
 
+  // Чекаємо завершення анімацій меню, а не фіксований час — на повільній машині теж стабільно
+  const teamLink = p.locator('#site-nav a[href="#team"]')
   await p.click('.nav-toggle')
-  await p.waitForTimeout(700)
-  ok(await p.locator('#site-nav a[href="#team"]').isVisible(), 'меню відкрито')
+  await expect(teamLink, 'меню відкрито').toBeVisible()
+  await p.waitForTimeout(500)
   await p.keyboard.press('Escape')
-  await p.waitForTimeout(600)
-  ok(!(await p.locator('#site-nav a[href="#team"]').isVisible()), 'Esc закриває меню')
+  await expect(teamLink, 'Esc закриває меню').toBeHidden()
   await p.click('.nav-toggle')
-  await p.waitForTimeout(600)
+  await expect(teamLink).toBeVisible()
+  await p.waitForTimeout(500)
   await p.mouse.click(200, 760)
-  await p.waitForTimeout(600)
-  ok(!(await p.locator('#site-nav a[href="#team"]').isVisible()), 'дотик поза меню закриває')
+  await expect(teamLink, 'дотик поза меню закриває').toBeHidden()
   await p.click('.nav-toggle')
-  await p.waitForTimeout(600)
+  await expect(teamLink).toBeVisible()
+  await p.waitForTimeout(500)
   await p.click('#site-nav a[href="#team"]')
   await p.waitForTimeout(1500)
   ok(await p.evaluate(() => document.querySelector('#team .team-grid')!.classList.contains('is-in')), 'склад з’явився після переходу')
