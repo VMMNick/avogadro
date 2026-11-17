@@ -43,6 +43,13 @@
       "when": 1794934691314,
       "tag": "0005_sets_lineup_standings",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794940753949,
+      "tag": "0006_roles_trophies_trainings",
+      "breakpoints": true
     }
   ]
 }

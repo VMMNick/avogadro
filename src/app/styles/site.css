@@ -212,7 +212,11 @@ a {
   text-transform: uppercase;
   text-decoration: none;
   clip-path: var(--slant);
-  transition: transform 0.25s ease, filter 0.25s ease, background-color 0.25s ease, color 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
 .btn-primary,
@@ -320,9 +324,15 @@ a {
   animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-.hero-copy > :nth-child(2) { animation-delay: 0.1s; }
-.hero-copy > :nth-child(3) { animation-delay: 0.2s; }
-.hero-copy > :nth-child(4) { animation-delay: 0.3s; }
+.hero-copy > :nth-child(2) {
+  animation-delay: 0.1s;
+}
+.hero-copy > :nth-child(3) {
+  animation-delay: 0.2s;
+}
+.hero-copy > :nth-child(4) {
+  animation-delay: 0.3s;
+}
 
 .hero-kicker {
   display: inline-block;
@@ -403,8 +413,7 @@ a {
 
 .team-section,
 .contacts-section {
-  background:
-    linear-gradient(180deg, rgba(19, 40, 90, 0.35), rgba(8, 20, 48, 0.2));
+  background: linear-gradient(180deg, rgba(19, 40, 90, 0.35), rgba(8, 20, 48, 0.2));
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -528,7 +537,10 @@ a {
   padding: 9px 22px;
   clip-path: var(--slant);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .filter-btn:hover {
@@ -554,7 +566,9 @@ a {
   padding: 12px 12px 18px;
   text-align: center;
   overflow: hidden;
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+  transition:
+    transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.3s;
 }
 
 /* золота смуга зверху, як верх щита */
@@ -571,7 +585,9 @@ a {
 
 .player-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--gold);
+  box-shadow:
+    0 24px 44px rgba(0, 0, 0, 0.6),
+    0 0 0 1px var(--gold);
 }
 
 .player-photo {
@@ -655,7 +671,9 @@ a {
   padding: 20px 24px 22px;
   text-align: center;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s;
 }
 
 /* ліва золота «стрічка» */
@@ -671,7 +689,9 @@ a {
 
 .match-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--line-strong);
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.55),
+    0 0 0 1px var(--line-strong);
 }
 
 .match-card.is-past::before {
@@ -725,7 +745,9 @@ a {
   font-size: 0.95rem;
   color: var(--navy-950);
   background: radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold) 55%, var(--gold-dark));
-  box-shadow: 0 0 0 3px var(--navy-800), 0 0 0 4px var(--line-strong);
+  box-shadow:
+    0 0 0 3px var(--navy-800),
+    0 0 0 4px var(--line-strong);
 }
 
 .vs-badge::before {
@@ -963,22 +985,41 @@ a {
 
 /* ---------- Animations ---------- */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes wobble {
-  0%, 100% { transform: rotate(-25deg); }
-  50% { transform: rotate(25deg); }
+  0%,
+  100% {
+    transform: rotate(-25deg);
+  }
+  50% {
+    transform: rotate(25deg);
+  }
 }
 
 @keyframes emblemIn {
-  from { opacity: 0; transform: scale(0.85) rotate(-6deg); }
-  to { opacity: 1; transform: scale(1) rotate(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.85) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1038,7 +1079,10 @@ a {
   .nav a {
     opacity: 0;
     transform: translateX(-18px);
-    transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      color 0.2s ease;
   }
 
   .nav.is-open a {
@@ -1066,13 +1110,17 @@ a {
     background: rgba(2, 6, 18, 0.55);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+    transition:
+      opacity 0.35s ease,
+      visibility 0s linear 0.35s;
   }
 
   .nav-backdrop.is-open {
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.35s ease, visibility 0s;
+    transition:
+      opacity 0.35s ease,
+      visibility 0s;
   }
 
   .nav a:not(.btn-admin)::after {
@@ -1316,33 +1364,63 @@ a {
 }
 
 @keyframes drift1 {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(14vw, 10vh, 0) scale(1.12); }
-  100% { transform: translate3d(4vw, 22vh, 0) scale(0.95); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(14vw, 10vh, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(4vw, 22vh, 0) scale(0.95);
+  }
 }
 
 @keyframes drift2 {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(-18vw, 18vh, 0) scale(0.9); }
-  100% { transform: translate3d(-6vw, -8vh, 0) scale(1.1); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-18vw, 18vh, 0) scale(0.9);
+  }
+  100% {
+    transform: translate3d(-6vw, -8vh, 0) scale(1.1);
+  }
 }
 
 @keyframes drift3 {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  100% { transform: translate3d(20vw, -16vh, 0) scale(1.15); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(20vw, -16vh, 0) scale(1.15);
+  }
 }
 
 @keyframes rise {
-  0% { transform: translate3d(0, 0, 0); opacity: 0; }
-  10% { opacity: 0.85; }
-  50% { transform: translate3d(var(--dx, 20px), -55lvh, 0); }
-  85% { opacity: 0.6; }
-  100% { transform: translate3d(0, -110lvh, 0); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(var(--dx, 20px), -55lvh, 0);
+  }
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate3d(0, -110lvh, 0);
+    opacity: 0;
+  }
 }
 
 /* ---------- Шапка під час прокручування ---------- */
 .header {
-  transition: background-color 0.35s ease, box-shadow 0.35s ease;
+  transition:
+    background-color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
 .logo-emblem {
@@ -1373,7 +1451,9 @@ a {
 
 /* «бургер» перетворюється на хрестик */
 .nav-toggle span {
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease;
   transform-origin: 50% 50%;
 }
 
@@ -1410,13 +1490,25 @@ a {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-12px) rotate(1.5deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.5deg);
+  }
 }
 
 @keyframes glow {
-  0%, 100% { opacity: 0.75; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1.08); }
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
 }
 
 /* ---------- Поява під час прокручування ---------- */
@@ -1448,17 +1540,37 @@ a {
   animation: cardIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-[data-reveal='stagger'].is-in > :nth-child(2) { animation-delay: 0.07s; }
-[data-reveal='stagger'].is-in > :nth-child(3) { animation-delay: 0.14s; }
-[data-reveal='stagger'].is-in > :nth-child(4) { animation-delay: 0.21s; }
-[data-reveal='stagger'].is-in > :nth-child(5) { animation-delay: 0.28s; }
-[data-reveal='stagger'].is-in > :nth-child(6) { animation-delay: 0.35s; }
-[data-reveal='stagger'].is-in > :nth-child(7) { animation-delay: 0.42s; }
-[data-reveal='stagger'].is-in > :nth-child(n + 8) { animation-delay: 0.48s; }
+[data-reveal='stagger'].is-in > :nth-child(2) {
+  animation-delay: 0.07s;
+}
+[data-reveal='stagger'].is-in > :nth-child(3) {
+  animation-delay: 0.14s;
+}
+[data-reveal='stagger'].is-in > :nth-child(4) {
+  animation-delay: 0.21s;
+}
+[data-reveal='stagger'].is-in > :nth-child(5) {
+  animation-delay: 0.28s;
+}
+[data-reveal='stagger'].is-in > :nth-child(6) {
+  animation-delay: 0.35s;
+}
+[data-reveal='stagger'].is-in > :nth-child(7) {
+  animation-delay: 0.42s;
+}
+[data-reveal='stagger'].is-in > :nth-child(n + 8) {
+  animation-delay: 0.48s;
+}
 
 @keyframes cardIn {
-  from { opacity: 0; transform: translate3d(0, 28px, 0) scale(0.96); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* відблиск, що пробігає по стрічці заголовка */
@@ -1480,7 +1592,9 @@ a {
 }
 
 @keyframes shine {
-  to { transform: translateX(110%); }
+  to {
+    transform: translateX(110%);
+  }
 }
 
 /* активний фільтр трохи «пружинить» */
@@ -1489,8 +1603,12 @@ a {
 }
 
 @keyframes pop {
-  0% { transform: scale(0.92); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* ---------- Відгук на дотик (телефони) ---------- */
@@ -1598,7 +1716,9 @@ a {
 
 .select-pill select {
   appearance: none;
-  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23f2b321' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center;
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23f2b321' stroke-width='2'/%3E%3C/svg%3E")
+    no-repeat right 12px center;
   border: 0;
   color: var(--text-main);
   font: 600 0.95rem var(--font-body);
@@ -2501,4 +2621,573 @@ a {
 
 .calendar-copy .subsection-title {
   gap: 14px;
+}
+
+/* =========================================================
+   Трофеї, тренування, форма заявки, календар, афіша
+   ========================================================= */
+
+.trophy-shelf {
+  display: grid;
+  gap: 28px;
+}
+
+.trophy-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+
+.trophy-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(var(--navy-800), var(--navy-900)) padding-box,
+    linear-gradient(180deg, var(--line-strong), rgba(242, 179, 33, 0.12)) border-box;
+  border: 1px solid transparent;
+  box-shadow: var(--shadow);
+}
+
+/* «полиця» під трофеями */
+.trophy-card::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--gold-grad);
+  opacity: 0.7;
+}
+
+.trophy-card.is-silver::after {
+  background: linear-gradient(90deg, #f1f4fa, #8ea0c8);
+}
+
+.trophy-card.is-bronze::after {
+  background: linear-gradient(90deg, #f0b27a, #9c5a24);
+}
+
+.trophy-icon {
+  flex: none;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
+}
+
+.trophy-card > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.trophy-kind {
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.trophy-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+
+.trophy-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- Тренування й заявка ---------- */
+.join-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.training-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.training-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: var(--navy-800);
+  border-left: 4px solid var(--gold);
+}
+
+.training-day {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.training-time {
+  font-family: var(--font-display);
+  color: var(--gold-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.training-place,
+.training-note {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.training-place a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.training-place a:hover {
+  color: var(--gold-light);
+}
+
+.join-card {
+  padding: 24px 26px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(var(--navy-800), var(--navy-900)) padding-box,
+    linear-gradient(180deg, var(--line-strong), rgba(242, 179, 33, 0.12)) border-box;
+  border: 1px solid transparent;
+  box-shadow: var(--shadow);
+}
+
+.join-lead {
+  color: var(--text-muted);
+  margin: -6px 0 16px;
+}
+
+.join-form {
+  display: grid;
+  gap: 14px;
+}
+
+.join-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.join-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.join-field > span {
+  font-family: var(--font-label);
+  font-size: 0.85rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.join-field small {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+
+.join-field input,
+.join-field select,
+.join-field textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--navy-950);
+  color: var(--text-main);
+  font: inherit;
+}
+
+.join-field textarea {
+  resize: vertical;
+  min-height: 84px;
+}
+
+.join-field input:focus-visible,
+.join-field select:focus-visible,
+.join-field textarea:focus-visible,
+.join-consent input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.join-field [aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.join-field input::placeholder {
+  color: #8592b3;
+}
+
+.join-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.join-consent input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold);
+  flex: none;
+}
+
+.join-error {
+  color: var(--error);
+  font-size: 0.9rem;
+}
+
+.join-submit {
+  justify-self: start;
+  border: 0;
+  cursor: pointer;
+}
+
+.join-submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.join-done {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--gold);
+  background: rgba(242, 179, 33, 0.1);
+}
+
+.join-done strong {
+  color: var(--gold);
+  margin-right: 6px;
+}
+
+/* поле-пастка для ботів */
+.join-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+@media (max-width: 860px) {
+  .join-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .join-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .join-card {
+    padding: 20px 16px;
+  }
+}
+
+.archive-status {
+  text-align: center;
+  color: var(--text-muted);
+  margin: -14px 0 18px;
+  font-size: 0.9rem;
+}
+
+.archive-status .match-link {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* ---------- Календар і QR ---------- */
+.calendar-page .section-title {
+  margin-bottom: 12px;
+}
+
+.calendar-lead {
+  max-width: 640px;
+  margin: 0 auto 28px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.calendar-page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 40px;
+}
+
+.calendar-page-grid .calendar-card {
+  margin: 0;
+}
+
+.calendar-qr {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 240px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.qr-box {
+  width: 180px;
+  height: 180px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.qr-box svg,
+.poster-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.calendar-upcoming {
+  max-width: 760px;
+}
+
+@media (max-width: 760px) {
+  .calendar-page-grid {
+    grid-template-columns: 1fr;
+  }
+  .calendar-qr {
+    max-width: none;
+  }
+}
+
+.footer-links a {
+  color: var(--gold);
+}
+
+.install-btn {
+  margin-top: 6px;
+}
+
+.offline-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--navy-800, #0a1838);
+  border: 1px solid var(--line-strong);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+}
+
+/* ---------- Афіша для друку ---------- */
+.poster-page {
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  background: #1a2236;
+}
+
+.poster-toolbar {
+  max-width: 210mm;
+  margin: 0 auto 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.poster-toolbar .back-link {
+  margin: 0;
+}
+
+.poster-sheet {
+  width: 100%;
+  max-width: 210mm;
+  aspect-ratio: 210 / 297;
+  margin: 0 auto;
+  padding: 14mm 12mm;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8mm;
+  color: #fff;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(242, 179, 33, 0.28), transparent 55%),
+    linear-gradient(180deg, #0b1d48 0%, #050d22 100%);
+  border-radius: 6px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  overflow: hidden;
+}
+
+.poster-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.poster-club {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 3.4vw, 1.9rem);
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.poster-tournament {
+  margin: 4px 0 0;
+  font-family: var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.poster-teams {
+  margin: auto 0 0;
+  display: grid;
+  gap: 4mm;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 7vw, 3.6rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.poster-vs {
+  font-size: 0.55em;
+  color: var(--gold);
+}
+
+.poster-opponent {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3mm;
+}
+
+.poster-opponent img {
+  width: clamp(48px, 12vw, 88px);
+  height: auto;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.poster-date {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-label);
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  color: var(--gold-light);
+}
+
+.poster-venue {
+  margin: 0 0 auto;
+  text-align: center;
+  font-size: clamp(0.95rem, 2.6vw, 1.25rem);
+  display: grid;
+  gap: 4px;
+}
+
+.poster-venue span {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.poster-foot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 6mm;
+  border-top: 1px solid var(--line-strong);
+}
+
+.poster-qr {
+  flex: none;
+  width: clamp(80px, 22vw, 40mm);
+  aspect-ratio: 1;
+  background: #fff;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.poster-scan {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.poster-url {
+  margin: 0;
+  color: var(--gold);
+  overflow-wrap: anywhere;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  .poster-page {
+    padding: 0;
+    background: none;
+  }
+  .poster-toolbar {
+    display: none;
+  }
+  .poster-sheet {
+    max-width: none;
+    width: 210mm;
+    height: 297mm;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .poster-teams {
+    font-size: 3.6rem;
+  }
+  .poster-club {
+    font-size: 1.9rem;
+  }
+  .poster-date {
+    font-size: 2rem;
+  }
+  .poster-venue {
+    font-size: 1.25rem;
+  }
+  .poster-qr {
+    width: 40mm;
+  }
 }

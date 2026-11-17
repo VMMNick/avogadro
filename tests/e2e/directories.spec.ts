@@ -41,8 +41,11 @@ test('вхід лише за посиланням, реєстрація за к�
   await page.waitForURL(/\/admin$/)
   await page.goto('/admin/register')
   ok(page.url().endsWith('/admin'), 'залогіненого з реєстрації перекидає в адмінку')
+  await page.goto('/admin/account')
+  ok((await page.locator('text=new@club.test').count()) > 0, 'новий учасник увійшов у свій акаунт')
+  ok((await page.locator('dd:has-text("Редактор")').count()) === 1, 'за кодом запрошення — роль «редактор»')
   await page.goto('/admin/admins')
-  ok((await page.locator('text=new@club.test').count()) > 0, 'новий адмін у списку адміністраторів')
+  ok(page.url().includes('denied=1'), 'редактору керування доступом недоступне')
 
   // Довідник команд
   await page.goto('/admin/teams')

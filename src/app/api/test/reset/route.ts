@@ -18,16 +18,18 @@ export async function POST(request: Request) {
   const password = process.env.ADMIN_PASSWORD
   if (!email || !password) return new Response('ADMIN_EMAIL / ADMIN_PASSWORD не задані', { status: 500 })
 
-  const { seed } = (await request.json().catch(() => ({}))) as { seed?: string }
+  const { seed } = (await request.json().catch(() => ({}))) as { seed?: 'demo' | 'archive' }
   const db = getDb()
   await db.execute(
-    sql`TRUNCATE ${schema.matches}, ${schema.players}, ${schema.teams}, ${schema.venues}, ${schema.tournaments}, ${schema.loginAttempts}, ${schema.admins} RESTART IDENTITY CASCADE`,
+    sql`TRUNCATE ${schema.matches}, ${schema.players}, ${schema.teams}, ${schema.venues}, ${schema.tournaments}, ${schema.loginAttempts}, ${schema.admins}, ${schema.achievements}, ${schema.trainings}, ${schema.applications} RESTART IDENTITY CASCADE`,
   )
   await db.delete(schema.settings)
   await db.insert(schema.settings).values({ id: 1 })
   await db.insert(schema.admins).values({ name: 'Адміністратор', email, passwordHash: await hashPassword(password) })
 
-  if (seed === 'demo') await seedDemo()
+  // archive — демо-дані плюс гра двома сезонами раніше (перевірка довантаження архіву)
+  if (seed === 'demo' || seed === 'archive') await seedDemo()
+  if (seed === 'archive') await seedArchive()
 
   revalidatePath('/', 'layout')
   return Response.json({ ok: true })
@@ -215,4 +217,36 @@ async function seedDemo() {
       mapQuery: '50.4501, 30.5234',
     })
     .where(sql`${schema.settings.id} = 1`)
+  const season = (shift: number) => {
+    const y = seasonStartYear(new Date(now)) + shift
+    return `${y}-${String((y + 1) % 100).padStart(2, '0')}`
+  }
+  await db.insert(schema.achievements).values([
+    { season: season(-1), title: 'Чемпіонат області', titleEn: 'Regional championship', kind: 'gold' },
+    { season: season(-1), title: 'Кубок міста', titleEn: 'City cup', kind: 'bronze', note: 'Фінальна четвірка' },
+    { season: season(-2), title: 'Найкращий ліберо турніру', kind: 'award' },
+  ])
+  await db.insert(schema.trainings).values([
+    { weekday: 2, startTime: '19:00', endTime: '21:00', venueId: hall.id, location: hall.name },
+    {
+      weekday: 4,
+      startTime: '19:00',
+      endTime: '21:00',
+      venueId: hall.id,
+      location: hall.name,
+      note: 'Ігрове тренування',
+    },
+  ])
+}
+
+async function seedArchive() {
+  const db = getDb()
+  const old = Date.UTC(seasonStartYear(new Date()) - 2, 10, 15, 16, 0)
+  await db.insert(schema.matches).values({
+    opponent: 'Старий Суперник',
+    startsAt: new Date(old),
+    kind: 'official',
+    ourSets: 3,
+    theirSets: 0,
+  })
 }

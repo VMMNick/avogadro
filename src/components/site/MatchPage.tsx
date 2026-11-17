@@ -85,11 +85,7 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(jsonLd)} />
       <MotionLayer />
-      <SiteHeader
-        locale={locale}
-        onHome={false}
-        altHref={`${localePrefix(otherLocale)}/matches/${match.id}`}
-      />
+      <SiteHeader locale={locale} onHome={false} altHref={`${localePrefix(otherLocale)}/matches/${match.id}`} />
       <main id="top" className="section match-page">
         <div className="container">
           <a href={`${prefix}/#matches`} className="back-link">
@@ -143,7 +139,12 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
                     {match.location}
                     {venue?.address && <span className="match-facts-sub">{venue.address}</span>}
                     {mapQuery && (
-                      <a href={mapLinks(mapQuery).open} target="_blank" rel="noopener noreferrer" className="match-link">
+                      <a
+                        href={mapLinks(mapQuery).open}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="match-link"
+                      >
                         <PinIcon /> {t.detail.openMap}
                       </a>
                     )}
@@ -172,6 +173,11 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
                     {t.calendar.eventIcs}
                   </a>
                 </>
+              )}
+              {!past && (
+                <a className="btn-ghost" href={`${prefix}/matches/${match.id}/poster`}>
+                  🖨 {t.poster.title}
+                </a>
               )}
               <ShareButton url={url} title={event.title} label={t.detail.share} copiedLabel={t.detail.copied} />
             </div>
@@ -249,7 +255,11 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
                   </ul>
                 </>
               )}
-              {!lineup.length && <h2 className="sr-only" id="lineup-title">{t.detail.mvp}</h2>}
+              {!lineup.length && (
+                <h2 className="sr-only" id="lineup-title">
+                  {t.detail.mvp}
+                </h2>
+              )}
             </section>
           )}
 

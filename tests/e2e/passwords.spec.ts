@@ -13,8 +13,8 @@ test('паролі можна показати й приховати', async ({ 
   await page.click('main button[type=submit]')
   await page.waitForURL(/\/admin$/)
 
-  await page.goto('/admin/admins')
-  for (const id of ['password', 'current', 'next', 'confirm']) {
+  await page.goto('/admin/account')
+  for (const id of ['current', 'next', 'confirm']) {
     ok((await page.getAttribute(`#${id}`, 'type')) === 'password', `${id}: приховано`)
   }
   await page.fill('#next', 'NewPassword456')

@@ -1,13 +1,14 @@
 'use client'
 
 import { CalendarIcon, PinIcon } from './Icons'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { MatchKind } from '@/db/schema'
 import { mapLinks } from '@/lib/maps'
 import { googleCalendarUrl } from '@/lib/calendar'
 import { formatMatchDate, getDict, localePrefix, type Locale } from '@/lib/i18n'
 import { hasScore, isWin, type PublicMatch } from '@/lib/public-types'
 import { seasonLabel } from '@/lib/seasons'
+import { useMatches } from './MatchesStore'
 
 export type { PublicMatch }
 
@@ -100,30 +101,30 @@ export function MatchCard({ match, locale, siteUrl }: { match: PublicMatch; loca
 }
 
 export function MatchesSection({
-  matches,
   defaultSeason,
   tournaments,
   locale,
   siteUrl,
 }: {
-  matches: PublicMatch[]
   defaultSeason: string
+  /** Турніри, у яких є хоча б одна гра (за весь час) */
   tournaments: { id: string; name: string }[]
   locale: Locale
   siteUrl: string
 }) {
   const t = getDict(locale)
+  const { matches, seasons, archiveState, ensureArchive } = useMatches()
+  const loadedSeasons = new Set(matches.map((m) => m.season))
   const [kind, setKind] = useState<KindFilter>('all')
   const [season, setSeason] = useState(defaultSeason)
   const [tournament, setTournament] = useState('all')
   const [shownPast, setShownPast] = useState(STEP)
   const [shownUpcoming, setShownUpcoming] = useState(STEP)
 
-  const seasons = useMemo(() => [...new Set(matches.map((m) => m.season))].sort().reverse(), [matches])
-  const usedTournaments = useMemo(
-    () => tournaments.filter((tr) => matches.some((m) => m.tournamentId === tr.id)),
-    [matches, tournaments],
-  )
+  const usedTournaments = tournaments
+  // Архів потрібен для «Усіх сезонів» і для старих сезонів, яких ще немає на сторінці
+  const needsArchive = (s: string) => s === 'all' || !loadedSeasons.has(s)
+  const waiting = archiveState === 'loading' && needsArchive(season)
 
   const filtered = matches.filter(
     (m) =>
@@ -165,6 +166,7 @@ export function MatchesSection({
               value={season}
               onChange={(e) => {
                 setSeason(e.target.value)
+                if (needsArchive(e.target.value)) ensureArchive()
                 resetPaging()
               }}
             >
@@ -184,6 +186,7 @@ export function MatchesSection({
               value={tournament}
               onChange={(e) => {
                 setTournament(e.target.value)
+                if (season === 'all') ensureArchive()
                 resetPaging()
               }}
             >
@@ -197,14 +200,30 @@ export function MatchesSection({
           </label>
         )}
       </div>
-      <div className="matches-columns" aria-live="polite">
+      {(waiting || archiveState === 'error') && (
+        <p className="archive-status" role="status">
+          {archiveState === 'error' ? (
+            <>
+              {t.archive.error}{' '}
+              <button type="button" className="match-link" onClick={ensureArchive}>
+                ↻
+              </button>
+            </>
+          ) : (
+            t.archive.loading
+          )}
+        </p>
+      )}
+      <div className="matches-columns" aria-live="polite" aria-busy={waiting || undefined}>
         <div>
           <h3 className="subsection-title" data-reveal>
             {t.matches.upcoming}
           </h3>
           <div className="match-list" data-reveal="stagger">
             {upcoming.length ? (
-              upcoming.slice(0, shownUpcoming).map((m) => <MatchCard key={m.id} match={m} locale={locale} siteUrl={siteUrl} />)
+              upcoming
+                .slice(0, shownUpcoming)
+                .map((m) => <MatchCard key={m.id} match={m} locale={locale} siteUrl={siteUrl} />)
             ) : (
               <p className="state-message">{t.matches.noUpcoming}</p>
             )}

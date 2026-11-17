@@ -1,4 +1,5 @@
 import 'server-only'
+import { getDb, schema } from '@/db'
 import type { Match, Team, Tournament, Venue } from '@/db/schema'
 import { normalizeMapQuery } from './maps'
 import { seasonKey } from './seasons'
@@ -48,7 +49,43 @@ export function prepareMatches(matches: Match[], venues: Venue[], tournaments: T
   const seasons = [...new Set(publicMatches.map((m) => m.season))].sort()
   const current = seasonKey(new Date(now))
   const defaultSeason = seasons.includes(current) ? current : (seasons.at(-1) ?? 'all')
-  return { publicMatches, defaultSeason, venueById, tournamentById, teamById }
+  // На сторінку одразу — поточний і минулий сезон та всі майбутні ігри; решта — архів на вимогу
+  const cutoff = previousSeasonKey(current)
+  const recent = publicMatches.filter((m) => !m.isPast || m.season >= cutoff)
+  const allSeasons = [...seasons].reverse()
+  const hasArchive = recent.length < publicMatches.length
+  const usedTournaments = tournaments.filter((tr) => matches.some((m) => m.tournamentId === tr.id))
+  return {
+    publicMatches,
+    recent,
+    allSeasons,
+    hasArchive,
+    usedTournaments,
+    defaultSeason,
+    venueById,
+    tournamentById,
+    teamById,
+  }
+}
+
+/** «2026-27» → «2025-26» */
+export function previousSeasonKey(key: string) {
+  const y = Number(key.slice(0, 4)) - 1
+  return `${y}-${String((y + 1) % 100).padStart(2, '0')}`
+}
+
+/** Архівні матчі (старші за минулий сезон) — для довантаження на головній. */
+export async function loadArchiveMatches(): Promise<PublicMatch[]> {
+  const db = getDb()
+  const [matches, venues, tournaments, teams] = await Promise.all([
+    db.select().from(schema.matches),
+    db.select().from(schema.venues),
+    db.select().from(schema.tournaments),
+    db.select().from(schema.teams),
+  ])
+  const { publicMatches, recent } = prepareMatches(matches, venues, tournaments, teams)
+  const recentIds = new Set(recent.map((m) => m.id))
+  return publicMatches.filter((m) => !recentIds.has(m.id))
 }
 
 export const matchUrl = (id: string, locale: Locale = 'uk') => `${SITE_URL}${localePrefix(locale)}/matches/${id}`

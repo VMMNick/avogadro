@@ -1,7 +1,7 @@
 import 'server-only'
 import { asc, desc, eq, sql } from 'drizzle-orm'
 import { getDb, schema } from '@/db'
-import type { Match, Player, Settings, Team, Tournament, Venue } from '@/db/schema'
+import type { Achievement, Match, Player, Settings, Team, Training, Tournament, Venue } from '@/db/schema'
 
 export type SiteContent = {
   players: Player[]
@@ -10,6 +10,8 @@ export type SiteContent = {
   venues: Venue[]
   tournaments: Tournament[]
   teams: Team[]
+  achievements: Achievement[]
+  trainings: Training[]
   /** Скільки ігор зіграв кожен гравець */
   gamesByPlayer: Record<string, number>
   failed: boolean
@@ -19,26 +21,51 @@ export type SiteContent = {
 export async function getSiteContent(): Promise<SiteContent> {
   try {
     const db = getDb()
-    const [players, matches, settingsRows, venues, tournaments, games, teams] = await Promise.all([
-      db
-        .select()
-        .from(schema.players)
-        .orderBy(sql`${schema.players.number} ASC NULLS LAST`, asc(schema.players.name)),
-      db.select().from(schema.matches).orderBy(asc(schema.matches.startsAt)),
-      db.select().from(schema.settings).where(eq(schema.settings.id, 1)).limit(1),
-      db.select().from(schema.venues),
-      db.select().from(schema.tournaments),
-      db
-        .select({ playerId: schema.matchPlayers.playerId, n: sql<number>`count(*)::int` })
-        .from(schema.matchPlayers)
-        .groupBy(schema.matchPlayers.playerId),
-      db.select().from(schema.teams),
-    ])
+    const [players, matches, settingsRows, venues, tournaments, games, teams, achievements, trainings] =
+      await Promise.all([
+        db
+          .select()
+          .from(schema.players)
+          .orderBy(sql`${schema.players.number} ASC NULLS LAST`, asc(schema.players.name)),
+        db.select().from(schema.matches).orderBy(asc(schema.matches.startsAt)),
+        db.select().from(schema.settings).where(eq(schema.settings.id, 1)).limit(1),
+        db.select().from(schema.venues),
+        db.select().from(schema.tournaments),
+        db
+          .select({ playerId: schema.matchPlayers.playerId, n: sql<number>`count(*)::int` })
+          .from(schema.matchPlayers)
+          .groupBy(schema.matchPlayers.playerId),
+        db.select().from(schema.teams),
+        db.select().from(schema.achievements).orderBy(desc(schema.achievements.season), asc(schema.achievements.kind)),
+        db.select().from(schema.trainings).orderBy(asc(schema.trainings.weekday), asc(schema.trainings.startTime)),
+      ])
     const gamesByPlayer = Object.fromEntries(games.map((g) => [g.playerId, g.n]))
-    return { players, matches, settings: settingsRows[0] ?? null, venues, tournaments, teams, gamesByPlayer, failed: false }
+    return {
+      players,
+      matches,
+      settings: settingsRows[0] ?? null,
+      venues,
+      tournaments,
+      teams,
+      achievements,
+      trainings,
+      gamesByPlayer,
+      failed: false,
+    }
   } catch (err) {
     console.error('Не вдалося завантажити дані сайту', err)
-    return { players: [], matches: [], settings: null, venues: [], tournaments: [], teams: [], gamesByPlayer: {}, failed: true }
+    return {
+      players: [],
+      matches: [],
+      settings: null,
+      venues: [],
+      tournaments: [],
+      teams: [],
+      achievements: [],
+      trainings: [],
+      gamesByPlayer: {},
+      failed: true,
+    }
   }
 }
 
@@ -140,7 +167,6 @@ export async function listTournaments() {
   return rows.sort((a, b) => byName.compare(a.name, b.name))
 }
 
-
 /** Матч для окремої сторінки: з залом, турніром і всіма зустрічами з тим самим суперником. */
 export async function getMatchDetail(id: string) {
   const db = getDb()
@@ -180,7 +206,12 @@ export async function getMatchDetail(id: string) {
   ])
   const [mvp] = match.mvpPlayerId
     ? await db
-        .select({ id: schema.players.id, name: schema.players.name, number: schema.players.number, photoUrl: schema.players.photoUrl })
+        .select({
+          id: schema.players.id,
+          name: schema.players.name,
+          number: schema.players.number,
+          photoUrl: schema.players.photoUrl,
+        })
         .from(schema.players)
         .where(eq(schema.players.id, match.mvpPlayerId))
         .limit(1)
@@ -194,4 +225,21 @@ export async function getMatchDetail(id: string) {
     mvp: mvp ?? null,
     h2h: h2h.filter((m) => m.id !== match.id),
   }
+}
+
+export async function countNewApplications() {
+  const [{ n }] = await getDb()
+    .select({ n: sql<number>`count(*)::int` })
+    .from(schema.applications)
+    .where(eq(schema.applications.processed, false))
+  return n
+}
+
+/** Зіграні матчі без рахунку — нагадування на огляді адмінки. */
+export async function listMatchesWithoutScore() {
+  return getDb()
+    .select({ id: schema.matches.id, opponent: schema.matches.opponent, startsAt: schema.matches.startsAt })
+    .from(schema.matches)
+    .where(sql`${schema.matches.ourSets} IS NULL AND ${schema.matches.startsAt} < now() - interval '3 hours'`)
+    .orderBy(desc(schema.matches.startsAt))
 }

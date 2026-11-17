@@ -1,5 +1,7 @@
 'use client'
 
+import { ACHIEVEMENT_LABELS, WEEKDAYS } from '@/lib/admin-labels'
+
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import {
@@ -10,7 +12,9 @@ import {
   saveMatchAction,
   savePlayerAction,
   saveSettingsAction,
+  saveAchievementAction,
   saveTeamAction,
+  saveTrainingAction,
   saveTournamentAction,
   saveVenueAction,
 } from '@/app/admin/actions'
@@ -37,7 +41,14 @@ export function LoginForm() {
     <form action={action} className="adm-form" key={formKey(state)}>
       <FormMessage state={state} />
       <Field name="email" label="Email">
-        <input className="adm-input" type="email" autoComplete="username" required defaultValue={pick(state, 'email', '')} {...inputProps('email', state)} />
+        <input
+          className="adm-input"
+          type="email"
+          autoComplete="username"
+          required
+          defaultValue={pick(state, 'email', '')}
+          {...inputProps('email', state)}
+        />
       </Field>
       <Field name="password" label="Пароль">
         <PasswordInput autoComplete="current-password" required {...inputProps('password', state)} />
@@ -54,10 +65,24 @@ export function RegisterForm() {
     <form action={action} className="adm-form" key={formKey(state)}>
       <FormMessage state={state} />
       <Field name="name" label="Ім'я" error={e.name}>
-        <input className="adm-input" required maxLength={80} autoComplete="name" defaultValue={pick(state, 'name', '')} {...inputProps('name', state)} />
+        <input
+          className="adm-input"
+          required
+          maxLength={80}
+          autoComplete="name"
+          defaultValue={pick(state, 'name', '')}
+          {...inputProps('name', state)}
+        />
       </Field>
       <Field name="email" label="Email" error={e.email}>
-        <input className="adm-input" type="email" required autoComplete="username" defaultValue={pick(state, 'email', '')} {...inputProps('email', state)} />
+        <input
+          className="adm-input"
+          type="email"
+          required
+          autoComplete="username"
+          defaultValue={pick(state, 'email', '')}
+          {...inputProps('email', state)}
+        />
       </Field>
       <Field name="password" label="Пароль" error={e.password} hint="Мінімум 10 символів">
         <PasswordInput required minLength={10} autoComplete="new-password" {...inputProps('password', state)} />
@@ -90,7 +115,13 @@ export function PlayerForm({ player }: { player?: PlayerFormValues }) {
       <FormMessage state={state} />
       <div className="adm-form-grid">
         <Field name="name" label="ПІБ / Ім'я" error={e.name}>
-          <input className="adm-input" defaultValue={pick(state, 'name', player?.name)} required maxLength={80} {...inputProps('name', state)} />
+          <input
+            className="adm-input"
+            defaultValue={pick(state, 'name', player?.name)}
+            required
+            maxLength={80}
+            {...inputProps('name', state)}
+          />
         </Field>
         <Field name="number" label="Ігровий номер" error={e.number} hint="Для тренерського штабу можна не вказувати">
           <input
@@ -105,7 +136,12 @@ export function PlayerForm({ player }: { player?: PlayerFormValues }) {
           />
         </Field>
         <Field name="role" label="Амплуа" error={e.role}>
-          <select className="adm-select" defaultValue={pick(state, 'role', player?.role)} required {...inputProps('role', state)}>
+          <select
+            className="adm-select"
+            defaultValue={pick(state, 'role', player?.role)}
+            required
+            {...inputProps('role', state)}
+          >
             <option value="" disabled>
               Оберіть…
             </option>
@@ -364,12 +400,16 @@ export function MatchForm({
         />
         <LineupPicker
           players={players}
-          initialLineup={state.values ? (state.values.lineup ? state.values.lineup.split(',') : []) : (match?.lineup ?? [])}
+          initialLineup={
+            state.values ? (state.values.lineup ? state.values.lineup.split(',') : []) : (match?.lineup ?? [])
+          }
           initialMvp={pick(state, 'mvpPlayerId', match?.mvpPlayerId)}
         />
       </div>
       <div className="adm-actions">
-        <SubmitButton>{match?.id ? 'Зберегти зміни' : initialKind === 'friendly' ? 'Додати гру' : 'Додати матч'}</SubmitButton>
+        <SubmitButton>
+          {match?.id ? 'Зберегти зміни' : initialKind === 'friendly' ? 'Додати гру' : 'Додати матч'}
+        </SubmitButton>
         <Link href="/admin/matches" className="adm-btn">
           Скасувати
         </Link>
@@ -389,10 +429,21 @@ export function TeamForm({ team }: { team?: TeamFormValues }) {
       <FormMessage state={state} />
       <div className="adm-form-grid">
         <Field name="name" label="Назва команди" error={e.name}>
-          <input className="adm-input" defaultValue={pick(state, 'name', team?.name)} required maxLength={80} {...inputProps('name', state)} />
+          <input
+            className="adm-input"
+            defaultValue={pick(state, 'name', team?.name)}
+            required
+            maxLength={80}
+            {...inputProps('name', state)}
+          />
         </Field>
         <Field name="city" label="Місто" error={e.city} hint="Необов'язково">
-          <input className="adm-input" defaultValue={pick(state, 'city', team?.city)} maxLength={80} {...inputProps('city', state)} />
+          <input
+            className="adm-input"
+            defaultValue={pick(state, 'city', team?.city)}
+            maxLength={80}
+            {...inputProps('city', state)}
+          />
         </Field>
         <PhotoInput current={team?.logoUrl ?? null} error={e.photo} logo />
       </div>
@@ -418,10 +469,29 @@ export function VenueForm({ venue }: { venue?: VenueFormValues }) {
       <FormMessage state={state} />
       <div className="adm-form-grid">
         <Field name="name" label="Назва залу" error={e.name} wide>
-          <input className="adm-input" defaultValue={pick(state, 'name', venue?.name)} required maxLength={120} placeholder="СК «Юність»" {...inputProps('name', state)} />
+          <input
+            className="adm-input"
+            defaultValue={pick(state, 'name', venue?.name)}
+            required
+            maxLength={120}
+            placeholder="СК «Юність»"
+            {...inputProps('name', state)}
+          />
         </Field>
-        <Field name="address" label="Адреса" error={e.address} wide hint="Необов'язково. Показується підказкою у формі матчу.">
-          <input className="adm-input" defaultValue={pick(state, 'address', venue?.address)} maxLength={200} placeholder="вул. Прикладна, 1, Київ" {...inputProps('address', state)} />
+        <Field
+          name="address"
+          label="Адреса"
+          error={e.address}
+          wide
+          hint="Необов'язково. Показується підказкою у формі матчу."
+        >
+          <input
+            className="adm-input"
+            defaultValue={pick(state, 'address', venue?.address)}
+            maxLength={200}
+            placeholder="вул. Прикладна, 1, Київ"
+            {...inputProps('address', state)}
+          />
         </Field>
         <Field
           name="mapQuery"
@@ -430,7 +500,12 @@ export function VenueForm({ venue }: { venue?: VenueFormValues }) {
           wide
           hint="Адреса або координати (50.4501, 30.5234), чи повне посилання Google Maps з «@координатами». Порожньо — карта шукатиме за адресою або назвою."
         >
-          <input className="adm-input" defaultValue={pick(state, 'mapQuery', venue?.mapQuery)} maxLength={200} {...inputProps('mapQuery', state)} />
+          <input
+            className="adm-input"
+            defaultValue={pick(state, 'mapQuery', venue?.mapQuery)}
+            maxLength={200}
+            {...inputProps('mapQuery', state)}
+          />
         </Field>
       </div>
       {venue?.id && <p className="adm-hint">Якщо змінити назву, вона оновиться і в усіх матчах у цьому залі.</p>}
@@ -453,12 +528,235 @@ export function TournamentForm({ tournament }: { tournament?: TournamentFormValu
     <form action={action} className="adm-form adm-card" key={formKey(state)}>
       {tournament?.id && <input type="hidden" name="id" value={tournament.id} />}
       <FormMessage state={state} />
-      <Field name="name" label="Назва турніру" error={e.name} hint="Наприклад: Чемпіонат області, Кубок міста, Аматорська ліга">
-        <input className="adm-input" defaultValue={pick(state, 'name', tournament?.name)} required maxLength={120} {...inputProps('name', state)} />
+      <Field
+        name="name"
+        label="Назва турніру"
+        error={e.name}
+        hint="Наприклад: Чемпіонат області, Кубок міста, Аматорська ліга"
+      >
+        <input
+          className="adm-input"
+          defaultValue={pick(state, 'name', tournament?.name)}
+          required
+          maxLength={120}
+          {...inputProps('name', state)}
+        />
       </Field>
       <div className="adm-actions">
         <SubmitButton>{tournament?.id ? 'Зберегти зміни' : 'Додати турнір'}</SubmitButton>
         <Link href="/admin/tournaments" className="adm-btn">
+          Скасувати
+        </Link>
+      </div>
+    </form>
+  )
+}
+
+export type AchievementFormValues = {
+  id?: string
+  season: string
+  title: string
+  titleEn: string | null
+  kind: keyof typeof ACHIEVEMENT_LABELS
+  note: string | null
+}
+
+export function AchievementForm({ achievement, seasons }: { achievement?: AchievementFormValues; seasons: string[] }) {
+  const [state, action] = useActionState(saveAchievementAction, initial)
+  const e = state.errors ?? {}
+  return (
+    <form action={action} className="adm-form adm-card" key={formKey(state)}>
+      {achievement?.id && <input type="hidden" name="id" value={achievement.id} />}
+      <FormMessage state={state} />
+      <div className="adm-form-grid">
+        <Field name="season" label="Сезон" error={e.season}>
+          <select
+            className="adm-select"
+            required
+            defaultValue={pick(state, 'season', achievement?.season ?? seasons[0])}
+            {...inputProps('season', state)}
+          >
+            {seasons.map((s) => (
+              <option key={s} value={s}>
+                {s.replace('-', '/')}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field name="kind" label="Нагорода" error={e.kind}>
+          <select
+            className="adm-select"
+            required
+            defaultValue={pick(state, 'kind', achievement?.kind ?? 'gold')}
+            {...inputProps('kind', state)}
+          >
+            {Object.entries(ACHIEVEMENT_LABELS).map(([k, label]) => (
+              <option key={k} value={k}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field
+          name="title"
+          label="Турнір / назва"
+          error={e.title}
+          wide
+          hint="Наприклад: Чемпіонат області, Кубок міста"
+        >
+          <input
+            className="adm-input"
+            required
+            maxLength={120}
+            defaultValue={pick(state, 'title', achievement?.title)}
+            {...inputProps('title', state)}
+          />
+        </Field>
+        <Field
+          name="titleEn"
+          label="Назва англійською"
+          error={e.titleEn}
+          wide
+          hint="Необов'язково — для англійської версії сайту"
+        >
+          <input
+            className="adm-input"
+            lang="en"
+            maxLength={120}
+            defaultValue={pick(state, 'titleEn', achievement?.titleEn)}
+            {...inputProps('titleEn', state)}
+          />
+        </Field>
+        <Field
+          name="note"
+          label="Примітка"
+          error={e.note}
+          wide
+          hint="Необов'язково: «у фіналі 3:2 проти Барком», «найкращий ліберо — Віктор Лис»"
+        >
+          <input
+            className="adm-input"
+            maxLength={200}
+            defaultValue={pick(state, 'note', achievement?.note)}
+            {...inputProps('note', state)}
+          />
+        </Field>
+      </div>
+      <div className="adm-actions">
+        <SubmitButton>{achievement?.id ? 'Зберегти зміни' : 'Додати досягнення'}</SubmitButton>
+        <Link href="/admin/achievements" className="adm-btn">
+          Скасувати
+        </Link>
+      </div>
+    </form>
+  )
+}
+
+export type TrainingFormValues = {
+  id?: string
+  weekday: number
+  startTime: string
+  endTime: string
+  venueId: string | null
+  location: string | null
+  note: string | null
+}
+
+export function TrainingForm({ training, venues }: { training?: TrainingFormValues; venues: DirectoryOption[] }) {
+  const [state, action] = useActionState(saveTrainingAction, initial)
+  const e = state.errors ?? {}
+  const venueChoice = pick(
+    state,
+    'venueId',
+    training ? (training.venueId ?? (training.location ? 'new' : '')) : (venues[0]?.id ?? ''),
+  )
+  return (
+    <form action={action} className="adm-form adm-card" key={formKey(state)}>
+      {training?.id && <input type="hidden" name="id" value={training.id} />}
+      <FormMessage state={state} />
+      <div className="adm-form-grid">
+        <Field name="weekday" label="День тижня" error={e.weekday}>
+          <select
+            className="adm-select"
+            required
+            defaultValue={pick(state, 'weekday', training?.weekday ?? 1)}
+            {...inputProps('weekday', state)}
+          >
+            {WEEKDAYS.map((d, i) => (
+              <option key={d} value={i + 1}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <div className="adm-field">
+          <span className="adm-label" id="time-label">
+            Час
+          </span>
+          <div className="adm-score" role="group" aria-labelledby="time-label">
+            <input
+              className="adm-input"
+              type="time"
+              name="startTime"
+              id="startTime"
+              aria-label="Початок"
+              required
+              defaultValue={pick(state, 'startTime', training?.startTime ?? '19:00')}
+              aria-invalid={e.startTime ? true : undefined}
+            />
+            <span>—</span>
+            <input
+              className="adm-input"
+              type="time"
+              name="endTime"
+              id="endTime"
+              aria-label="Кінець"
+              required
+              defaultValue={pick(state, 'endTime', training?.endTime ?? '21:00')}
+              aria-invalid={e.endTime ? true : undefined}
+            />
+          </div>
+          {(e.startTime || e.endTime) && (
+            <span className="adm-error" role="alert">
+              {e.startTime ?? e.endTime}
+            </span>
+          )}
+        </div>
+        <DirectoryPicker
+          label="Зал"
+          selectName="venueId"
+          textName="location"
+          saveName="saveVenue"
+          options={venues}
+          initialChoice={venueChoice}
+          initialText={pick(state, 'location', training?.location)}
+          placeholder="— Не вказано —"
+          newLabel="+ Інший зал (ввести назву)"
+          saveLabel="Додати зал до довідника"
+          manageHref="/admin/venues"
+          manageLabel="Зали"
+          error={e.location}
+          maxLength={120}
+          initialSave
+        />
+        <Field
+          name="note"
+          label="Примітка"
+          error={e.note}
+          wide
+          hint="Необов'язково: «для новачків», «жіноча група», «з собою — змінне взуття»"
+        >
+          <input
+            className="adm-input"
+            maxLength={200}
+            defaultValue={pick(state, 'note', training?.note)}
+            {...inputProps('note', state)}
+          />
+        </Field>
+      </div>
+      <div className="adm-actions">
+        <SubmitButton>{training?.id ? 'Зберегти зміни' : 'Додати тренування'}</SubmitButton>
+        <Link href="/admin/trainings" className="adm-btn">
           Скасувати
         </Link>
       </div>
@@ -483,7 +781,11 @@ export type SettingsFormValues = {
 export function SettingsForm({ settings }: { settings: SettingsFormValues }) {
   const [state, action] = useActionState(saveSettingsAction, initial)
   const e = state.errors ?? {}
-  const text = (name: keyof SettingsFormValues, label: string, opts: { hint?: string; type?: string; wide?: boolean; max?: number; placeholder?: string } = {}) => (
+  const text = (
+    name: keyof SettingsFormValues,
+    label: string,
+    opts: { hint?: string; type?: string; wide?: boolean; max?: number; placeholder?: string } = {},
+  ) => (
     <Field name={name} label={label} error={e[name]} hint={opts.hint} wide={opts.wide}>
       <input
         className="adm-input"
@@ -502,15 +804,33 @@ export function SettingsForm({ settings }: { settings: SettingsFormValues }) {
         <h2>Головний екран і «Про клуб»</h2>
         {text('tagline', 'Слоган під заголовком', { wide: true, max: 160 })}
         <Field name="about" label="Текст «Про клуб»" error={e.about} hint="Абзаци розділяйте порожнім рядком">
-          <textarea className="adm-textarea" defaultValue={pick(state, 'about', settings.about)} maxLength={5000} {...inputProps('about', state)} />
+          <textarea
+            className="adm-textarea"
+            defaultValue={pick(state, 'about', settings.about)}
+            maxLength={5000}
+            {...inputProps('about', state)}
+          />
         </Field>
       </section>
       <section className="adm-card adm-form">
         <h2>Англійська версія сайту (/en)</h2>
-        <p className="adm-hint">Необов&apos;язково. Якщо залишити порожнім, на англійській версії буде стандартний текст.</p>
+        <p className="adm-hint">
+          Необов&apos;язково. Якщо залишити порожнім, на англійській версії буде стандартний текст.
+        </p>
         {text('taglineEn', 'Tagline (слоган англійською)', { wide: true, max: 160 })}
-        <Field name="aboutEn" label="About (текст «Про клуб» англійською)" error={e.aboutEn} hint="Абзаци розділяйте порожнім рядком">
-          <textarea className="adm-textarea" lang="en" defaultValue={pick(state, 'aboutEn', settings.aboutEn)} maxLength={5000} {...inputProps('aboutEn', state)} />
+        <Field
+          name="aboutEn"
+          label="About (текст «Про клуб» англійською)"
+          error={e.aboutEn}
+          hint="Абзаци розділяйте порожнім рядком"
+        >
+          <textarea
+            className="adm-textarea"
+            lang="en"
+            defaultValue={pick(state, 'aboutEn', settings.aboutEn)}
+            maxLength={5000}
+            {...inputProps('aboutEn', state)}
+          />
         </Field>
       </section>
       <section className="adm-card adm-form">
@@ -518,7 +838,11 @@ export function SettingsForm({ settings }: { settings: SettingsFormValues }) {
         <div className="adm-form-grid">
           {text('phone', 'Телефон', { type: 'tel', max: 40, placeholder: '+380 …' })}
           {text('email', 'Email', { type: 'email', max: 120 })}
-          {text('address', 'Адреса / Зал', { wide: true, max: 200, placeholder: 'СК «Юність», вул. Прикладна, 1, Київ' })}
+          {text('address', 'Адреса / Зал', {
+            wide: true,
+            max: 200,
+            placeholder: 'СК «Юність», вул. Прикладна, 1, Київ',
+          })}
           {text('mapQuery', 'Місце на карті', {
             wide: true,
             max: 200,
@@ -545,13 +869,38 @@ export function NewAdminForm() {
       <FormMessage state={state} />
       <div className="adm-form-grid">
         <Field name="name" label="Ім'я" error={e.name}>
-          <input className="adm-input" required maxLength={80} defaultValue={pick(state, 'name', '')} {...inputProps('name', state)} />
+          <input
+            className="adm-input"
+            required
+            maxLength={80}
+            defaultValue={pick(state, 'name', '')}
+            {...inputProps('name', state)}
+          />
         </Field>
         <Field name="email" label="Email" error={e.email}>
-          <input className="adm-input" type="email" required autoComplete="off" defaultValue={pick(state, 'email', '')} {...inputProps('email', state)} />
+          <input
+            className="adm-input"
+            type="email"
+            required
+            autoComplete="off"
+            defaultValue={pick(state, 'email', '')}
+            {...inputProps('email', state)}
+          />
         </Field>
-        <Field name="password" label="Тимчасовий пароль" error={e.password} hint="Мінімум 10 символів. Передайте його особисто." wide>
+        <Field
+          name="password"
+          label="Тимчасовий пароль"
+          error={e.password}
+          hint="Мінімум 10 символів. Передайте його особисто."
+          wide
+        >
           <PasswordInput required minLength={10} autoComplete="new-password" {...inputProps('password', state)} />
+        </Field>
+        <Field name="role" label="Роль" hint="Редактор не бачить налаштувань сайту й керування доступом">
+          <select className="adm-select" defaultValue={pick(state, 'role', 'editor')} {...inputProps('role', state)}>
+            <option value="editor">Редактор</option>
+            <option value="admin">Адміністратор</option>
+          </select>
         </Field>
       </div>
       <div className="adm-actions">

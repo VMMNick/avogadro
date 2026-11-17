@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { EmblemSmall } from './Emblem'
 import { getDict, localePrefix, type Locale } from '@/lib/i18n'
 
-const SECTIONS = ['about', 'team', 'matches', 'stats', 'contacts'] as const
+const SECTIONS = ['about', 'team', 'matches', 'stats', 'join', 'contacts'] as const
 
 /**
  * Шапка сайту. На головній посилання ведуть до розділів сторінки (#matches),

@@ -19,7 +19,10 @@ export default async function EditMatchPage({ params }: { params: Promise<{ id: 
   const [[match], dirs, lineup] = await Promise.all([
     db.select().from(schema.matches).where(eq(schema.matches.id, id)).limit(1),
     getDirectoryOptions(),
-    db.select({ id: schema.matchPlayers.playerId }).from(schema.matchPlayers).where(eq(schema.matchPlayers.matchId, id)),
+    db
+      .select({ id: schema.matchPlayers.playerId })
+      .from(schema.matchPlayers)
+      .where(eq(schema.matchPlayers.matchId, id)),
   ])
   if (!match) notFound()
   const { teams, venues, tournaments } = toOptions(dirs)
@@ -27,6 +30,14 @@ export default async function EditMatchPage({ params }: { params: Promise<{ id: 
     <>
       <div className="adm-page-head">
         <h1>Авогадро — {match.opponent}</h1>
+        <div className="adm-actions">
+          <a className="adm-btn" href={`/matches/${match.id}`} target="_blank" rel="noopener noreferrer">
+            Сторінка матчу ↗
+          </a>
+          <a className="adm-btn" href={`/matches/${match.id}/poster`} target="_blank" rel="noopener noreferrer">
+            🖨 Афіша для друку
+          </a>
+        </div>
       </div>
       <MatchForm
         match={{

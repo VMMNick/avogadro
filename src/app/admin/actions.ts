@@ -5,15 +5,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { and, eq, ne, sql } from 'drizzle-orm'
 import { getDb, schema } from '@/db'
-import {
-  changePassword,
-  endSession,
-  getCurrentAdmin,
-  hashPassword,
-  login,
-  register,
-  requireAdmin,
-} from '@/lib/auth'
+import { changePassword, endSession, getCurrentAdmin, hashPassword, login, register, requireAdmin } from '@/lib/auth'
 import { deletePhoto, savePhoto, UploadError } from '@/lib/storage'
 import {
   changePasswordSchema,
@@ -26,6 +18,8 @@ import {
   playerSchema,
   registerSchema,
   settingsSchema,
+  achievementSchema,
+  trainingSchema,
   standingsSchema,
   teamSchema,
   tournamentSchema,
@@ -85,9 +79,7 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
     return { message: 'Сервер тимчасово недоступний або не налаштований. Спробуйте пізніше.', values }
   }
   if (!result.ok) {
-    return result.field
-      ? { errors: { [result.field]: result.error }, values }
-      : { message: result.error, values }
+    return result.field ? { errors: { [result.field]: result.error }, values } : { message: result.error, values }
   }
   revalidatePath('/admin/admins')
   redirect('/admin')
@@ -226,7 +218,14 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
   const tournamentName = String(formData.get('tournamentName') ?? '').trim()
   const saveTeam = formData.get('saveTeam') === 'on'
   const saveVenue = formData.get('saveVenue') === 'on'
-  const lineupIds = [...new Set(formData.getAll('lineup').map(String).filter((v) => UUID_RE.test(v)))]
+  const lineupIds = [
+    ...new Set(
+      formData
+        .getAll('lineup')
+        .map(String)
+        .filter((v) => UUID_RE.test(v)),
+    ),
+  ]
   const mvpRaw = String(formData.get('mvpPlayerId') ?? '')
   const mvpPlayerId = UUID_RE.test(mvpRaw) ? mvpRaw : null
   const setFields = Object.fromEntries(
@@ -285,9 +284,7 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
   const parsed = matchSchema.safeParse(raw)
   if (!parsed.success) return { errors: fieldErrors(parsed.error), values }
   // Склад і MVP — лише гравці, які ще існують
-  const known = new Set(
-    (await db.select({ id: schema.players.id }).from(schema.players)).map((p) => p.id),
-  )
+  const known = new Set((await db.select({ id: schema.players.id }).from(schema.players)).map((p) => p.id))
   const lineup = lineupIds.filter((pid) => known.has(pid))
   const mvp = mvpPlayerId && known.has(mvpPlayerId) ? mvpPlayerId : null
   if (mvp && lineup.length && !lineup.includes(mvp)) lineup.push(mvp) // MVP точно грав
@@ -442,9 +439,16 @@ export async function saveVenueAction(_prev: FormState, formData: FormData): Pro
   if (dup) return { errors: { name: 'Зал з такою назвою вже є в довіднику' }, values: raw }
 
   if (id) {
-    const updated = await db.update(schema.venues).set(parsed.data).where(eq(schema.venues.id, id)).returning({ id: schema.venues.id })
+    const updated = await db
+      .update(schema.venues)
+      .set(parsed.data)
+      .where(eq(schema.venues.id, id))
+      .returning({ id: schema.venues.id })
     if (!updated.length) return { message: 'Зал не знайдено — можливо, його вже видалили.', values: raw }
-    await db.update(schema.matches).set({ location: parsed.data.name.slice(0, 120) }).where(eq(schema.matches.venueId, id))
+    await db
+      .update(schema.matches)
+      .set({ location: parsed.data.name.slice(0, 120) })
+      .where(eq(schema.matches.venueId, id))
   } else {
     await db.insert(schema.venues).values(parsed.data)
   }
@@ -502,7 +506,10 @@ export async function saveStandingsAction(_prev: FormState, formData: FormData):
   try {
     rows = JSON.parse(json)
   } catch {
-    return { message: 'Не вдалося прочитати таблицю. Оновіть сторінку й спробуйте ще раз.', values: { standings: json } }
+    return {
+      message: 'Не вдалося прочитати таблицю. Оновіть сторінку й спробуйте ще раз.',
+      values: { standings: json },
+    }
   }
   const parsed = standingsSchema.safeParse(rows)
   if (!parsed.success) {
@@ -512,12 +519,19 @@ export async function saveStandingsAction(_prev: FormState, formData: FormData):
   }
   const updated = await getDb()
     .update(schema.tournaments)
-    .set({ standings: parsed.data.length ? parsed.data : null, standingsUpdatedAt: parsed.data.length ? new Date() : null })
+    .set({
+      standings: parsed.data.length ? parsed.data : null,
+      standingsUpdatedAt: parsed.data.length ? new Date() : null,
+    })
     .where(eq(schema.tournaments.id, id))
     .returning({ id: schema.tournaments.id })
   if (!updated.length) return { message: 'Турнір не знайдено — можливо, його вже видалили.' }
   refreshSite('/admin/tournaments', `/admin/tournaments/${id}`)
-  return { ok: true, message: parsed.data.length ? 'Таблицю збережено. Вона вже на сайті.' : 'Таблицю очищено.', values: { standings: JSON.stringify(parsed.data) } }
+  return {
+    ok: true,
+    message: parsed.data.length ? 'Таблицю збережено. Вона вже на сайті.' : 'Таблицю очищено.',
+    values: { standings: JSON.stringify(parsed.data) },
+  }
 }
 
 export async function deleteTournamentAction(formData: FormData) {
@@ -530,10 +544,110 @@ export async function deleteTournamentAction(formData: FormData) {
   redirect('/admin/tournaments?deleted=1')
 }
 
+// ---------- Досягнення ----------
+
+export async function saveAchievementAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin()
+  const raw = formToObject(formData, ['season', 'title', 'titleEn', 'kind', 'note'])
+  const parsed = achievementSchema.safeParse(raw)
+  if (!parsed.success) return { errors: fieldErrors(parsed.error), values: raw }
+  const db = getDb()
+  const id = idFrom(formData)
+  if (id) {
+    const updated = await db
+      .update(schema.achievements)
+      .set(parsed.data)
+      .where(eq(schema.achievements.id, id))
+      .returning({ id: schema.achievements.id })
+    if (!updated.length) return { message: 'Запис не знайдено — можливо, його вже видалили.', values: raw }
+  } else {
+    await db.insert(schema.achievements).values(parsed.data)
+  }
+  refreshSite('/admin/achievements')
+  redirect('/admin/achievements?saved=1')
+}
+
+export async function deleteAchievementAction(formData: FormData) {
+  await requireAdmin()
+  const id = idFrom(formData)
+  if (!id) return
+  await getDb().delete(schema.achievements).where(eq(schema.achievements.id, id))
+  refreshSite('/admin/achievements')
+  redirect('/admin/achievements?deleted=1')
+}
+
+// ---------- Розклад тренувань ----------
+
+export async function saveTrainingAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin()
+  const raw = formToObject(formData, ['weekday', 'startTime', 'endTime', 'location', 'note'])
+  const venueChoice = directoryChoice(formData, 'venueId')
+  const values = { ...raw, venueId: venueChoice }
+  const db = getDb()
+  let venueId: string | null = null
+  if (venueChoice && venueChoice !== 'new') {
+    const [venue] = await db.select().from(schema.venues).where(eq(schema.venues.id, venueChoice)).limit(1)
+    if (!venue) return { errors: { location: 'Цей зал уже видалили з довідника — оберіть інший' }, values }
+    raw.location = venue.name.slice(0, 120)
+    venueId = venue.id
+  } else if (!venueChoice) {
+    raw.location = ''
+  }
+  const parsed = trainingSchema.safeParse(raw)
+  if (!parsed.success) return { errors: fieldErrors(parsed.error), values }
+  if (venueChoice === 'new' && formData.get('saveVenue') === 'on' && parsed.data.location) {
+    const venue = await findOrCreateVenue(db, parsed.data.location)
+    venueId = venue.id
+  }
+  const data = { ...parsed.data, venueId }
+  const id = idFrom(formData)
+  if (id) {
+    const updated = await db
+      .update(schema.trainings)
+      .set(data)
+      .where(eq(schema.trainings.id, id))
+      .returning({ id: schema.trainings.id })
+    if (!updated.length) return { message: 'Тренування не знайдено — можливо, його вже видалили.', values }
+  } else {
+    await db.insert(schema.trainings).values(data)
+  }
+  refreshSite('/admin/trainings')
+  redirect('/admin/trainings?saved=1')
+}
+
+export async function deleteTrainingAction(formData: FormData) {
+  await requireAdmin()
+  const id = idFrom(formData)
+  if (!id) return
+  await getDb().delete(schema.trainings).where(eq(schema.trainings.id, id))
+  refreshSite('/admin/trainings')
+  redirect('/admin/trainings?deleted=1')
+}
+
+// ---------- Заявки «Хочу до команди» ----------
+
+export async function toggleApplicationAction(formData: FormData) {
+  await requireAdmin()
+  const id = idFrom(formData)
+  if (!id) return
+  const processed = formData.get('processed') === '1'
+  await getDb().update(schema.applications).set({ processed }).where(eq(schema.applications.id, id))
+  revalidatePath('/admin', 'layout')
+}
+
+export async function deleteApplicationAction(formData: FormData) {
+  await requireAdmin()
+  const id = idFrom(formData)
+  if (!id) return
+  await getDb().delete(schema.applications).where(eq(schema.applications.id, id))
+  revalidatePath('/admin', 'layout')
+  redirect('/admin/applications?deleted=1')
+}
+
 // ---------- Налаштування сайту ----------
 
 export async function saveSettingsAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin()
+  await requireAdmin({ role: 'admin' })
   const raw = formToObject(formData, [
     'tagline',
     'about',
@@ -562,8 +676,8 @@ export async function saveSettingsAction(_prev: FormState, formData: FormData): 
 // ---------- Адміністратори ----------
 
 export async function createAdminAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin()
-  const raw = formToObject(formData, ['name', 'email', 'password'])
+  await requireAdmin({ role: 'admin' })
+  const raw = formToObject(formData, ['name', 'email', 'password', 'role'])
   const parsed = newAdminSchema.safeParse(raw)
   if (!parsed.success) return { errors: fieldErrors(parsed.error), values: raw }
 
@@ -575,23 +689,36 @@ export async function createAdminAction(_prev: FormState, formData: FormData): P
     .limit(1)
   if (exists) return { errors: { email: 'Адміністратор з таким email уже існує' }, values: raw }
 
+  const role = formData.get('role') === 'admin' ? 'admin' : 'editor'
   await db.insert(schema.admins).values({
     name: parsed.data.name,
     email: parsed.data.email,
     passwordHash: await hashPassword(parsed.data.password),
+    role,
   })
   revalidatePath('/admin/admins')
   return { ok: true, message: `Адміністратора ${parsed.data.email} додано.` }
 }
 
 export async function deleteAdminAction(formData: FormData) {
-  const me = await requireAdmin()
+  const me = await requireAdmin({ role: 'admin' })
   const id = idFrom(formData)
   if (!id || id === me.id) return // себе видалити не можна — щоб не лишитись без доступу
   await getDb()
     .delete(schema.admins)
     .where(and(eq(schema.admins.id, id), ne(schema.admins.id, me.id)))
   revalidatePath('/admin/admins')
+}
+
+/** Змінити роль іншого адміністратора (свою — не можна, щоб не лишитися без доступу). */
+export async function setAdminRoleAction(formData: FormData) {
+  const me = await requireAdmin({ role: 'admin' })
+  const id = idFrom(formData)
+  const role = formData.get('role') === 'admin' ? 'admin' : 'editor'
+  if (!id || id === me.id) return
+  await getDb().update(schema.admins).set({ role }).where(eq(schema.admins.id, id))
+  revalidatePath('/admin/admins')
+  redirect('/admin/admins?saved=1')
 }
 
 export async function changePasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {

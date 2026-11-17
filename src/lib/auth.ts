@@ -6,6 +6,7 @@ import { and, count, eq, gte, lt, sql } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { getDb, schema } from '@/db'
+import type { AdminRole } from '@/db/schema'
 import { SESSION_COOKIE, SESSION_TTL_SECONDS, signSession, verifySession } from './session'
 
 const MAX_FAILED_ATTEMPTS = 5
@@ -13,7 +14,7 @@ const LOCK_WINDOW_MINUTES = 15
 // Хеш-заглушка, щоб час відповіді не видавав, чи існує email
 const DUMMY_HASH = '$2b$12$D3sRH.MSh55n9Mi8.5IoLOteuEjQesvQcXhevn4JeONywXPjgfhX6'
 
-export type CurrentAdmin = { id: string; email: string; name: string }
+export type CurrentAdmin = { id: string; email: string; name: string; role: AdminRole }
 
 export const getCurrentAdmin = cache(async (): Promise<CurrentAdmin | null> => {
   const jar = await cookies()
@@ -26,19 +27,22 @@ export const getCurrentAdmin = cache(async (): Promise<CurrentAdmin | null> => {
       email: schema.admins.email,
       name: schema.admins.name,
       sessionVersion: schema.admins.sessionVersion,
+      role: schema.admins.role,
     })
     .from(schema.admins)
     .where(eq(schema.admins.id, session.sub))
     .limit(1)
 
   if (!admin || admin.sessionVersion !== session.v) return null
-  return { id: admin.id, email: admin.email, name: admin.name }
+  return { id: admin.id, email: admin.email, name: admin.name, role: admin.role }
 })
 
 /** Для сторінок і server actions адмінки: повертає адміна або перенаправляє на вхід. */
-export async function requireAdmin(): Promise<CurrentAdmin> {
+export async function requireAdmin(opts: { role?: 'admin' } = {}): Promise<CurrentAdmin> {
   const admin = await getCurrentAdmin()
   if (!admin) redirect('/admin/login')
+  // Редактор не має доступу до адміністраторів і налаштувань сайту
+  if (opts.role === 'admin' && admin.role !== 'admin') redirect('/admin?denied=1')
   return admin
 }
 
@@ -106,11 +110,7 @@ export async function login(emailRaw: string, password: string, ip: string): Pro
 /** Змінює пароль і завершує всі інші сесії цього адміністратора. */
 export async function changePassword(adminId: string, current: string, next: string) {
   const db = getDb()
-  const [admin] = await db
-    .select()
-    .from(schema.admins)
-    .where(eq(schema.admins.id, adminId))
-    .limit(1)
+  const [admin] = await db.select().from(schema.admins).where(eq(schema.admins.id, adminId)).limit(1)
   if (!admin) return { ok: false as const, error: 'Адміністратора не знайдено.' }
 
   const valid = await bcrypt.compare(current, admin.passwordHash)
@@ -145,9 +145,7 @@ function sameSecret(a: string, b: string) {
   return timingSafeEqual(ha, hb)
 }
 
-export type RegisterResult =
-  | { ok: true }
-  | { ok: false; error: string; field?: 'code' | 'email' }
+export type RegisterResult = { ok: true } | { ok: false; error: string; field?: 'code' | 'email' }
 
 export async function register(
   data: { name: string; email: string; password: string; code: string },
@@ -182,7 +180,7 @@ export async function register(
 
   const [admin] = await db
     .insert(schema.admins)
-    .values({ name: data.name, email: data.email, passwordHash: await hashPassword(data.password) })
+    .values({ name: data.name, email: data.email, passwordHash: await hashPassword(data.password), role: 'editor' })
     .returning({ id: schema.admins.id, sessionVersion: schema.admins.sessionVersion })
   await db.delete(schema.loginAttempts).where(eq(schema.loginAttempts.key, key))
   await startSession(admin.id, admin.sessionVersion)

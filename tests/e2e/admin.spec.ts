@@ -157,6 +157,7 @@ test('адмінка: вхід, склад, матчі, налаштування
   await page.fill('#name', 'Тренер')
   await page.fill('#email', 'coach@club.test')
   await page.fill('#password', 'CoachPass123')
+  ok((await page.inputValue('#role')) === 'editor', 'нового учасника за замовчуванням додано як редактора')
   await page.click('button:has-text("Додати адміністратора")')
   await page.waitForSelector('.adm-alert-ok')
   ok((await page.locator('td:has-text("coach@club.test")').count()) === 1, 'адміністратора додано')
@@ -167,6 +168,7 @@ test('адмінка: вхід, склад, матчі, налаштування
   await p2.fill('#password', ADMIN_PASSWORD)
   await p2.click('main button[type=submit]')
   await p2.waitForURL(/\/admin$/)
+  await page.goto('/admin/account')
   await page.fill('#current', ADMIN_PASSWORD)
   await page.fill('#next', 'NewPassword456')
   await page.fill('#confirm', 'NewPassword456')
@@ -213,6 +215,12 @@ test('адмінка: вхід, склад, матчі, налаштування
     '/admin/teams',
     '/admin/venues',
     '/admin/tournaments',
+    '/admin/achievements',
+    '/admin/achievements/new',
+    '/admin/trainings',
+    '/admin/trainings/new',
+    '/admin/applications',
+    '/admin/account',
   ]) {
     await mp.goto(u)
     ok(await noHorizontalScroll(mp), `без горизонтального скролу на телефоні: ${u}`)

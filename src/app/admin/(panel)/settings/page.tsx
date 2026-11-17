@@ -1,9 +1,11 @@
 import { getSettings } from '@/lib/data'
+import { requireAdmin } from '@/lib/auth'
 import { SettingsForm } from '@/components/admin/forms'
 
 export const metadata = { title: 'Налаштування сайту' }
 
 export default async function SettingsPage() {
+  await requireAdmin({ role: 'admin' })
   const s = await getSettings()
   return (
     <>

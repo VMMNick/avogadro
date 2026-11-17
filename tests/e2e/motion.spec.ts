@@ -40,7 +40,7 @@ test('телефон: анімований фон, поява блоків, мо
   ok(await p.evaluate(() => document.querySelector('#team .team-grid')!.classList.contains('is-in')), 'склад з’явився після переходу')
   ok(await p.evaluate(() => document.documentElement.hasAttribute('data-scrolled')), 'шапка стиснулась')
 
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 45; i++) {
     await p.mouse.wheel(0, 400)
     await p.waitForTimeout(120)
   }

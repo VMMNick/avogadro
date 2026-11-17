@@ -1,10 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { MatchKind } from '@/db/schema'
 import { formatMatchDate, getDict, localePrefix, type Locale } from '@/lib/i18n'
 import { hasScore, isWin, type PublicMatch, type PublicPlayerRef } from '@/lib/public-types'
 import { seasonLabel } from '@/lib/seasons'
+import { useMatches } from './MatchesStore'
 
 type KindFilter = 'all' | MatchKind
 
@@ -63,24 +64,21 @@ function pointsSummary(list: PublicMatch[]) {
 }
 
 export function StatsSection({
-  matches,
   defaultSeason,
   locale,
   players,
 }: {
-  matches: PublicMatch[]
   defaultSeason: string
   locale: Locale
   players: PublicPlayerRef[]
 }) {
   const t = getDict(locale)
+  const { matches, seasons, archiveState, ensureArchive } = useMatches()
+  const loadedSeasons = new Set(matches.map((m) => m.season))
+  const needsArchive = (s: string) => s === 'all' || !loadedSeasons.has(s)
   const [season, setSeason] = useState(defaultSeason)
   const [kind, setKind] = useState<KindFilter>('all')
 
-  const seasons = useMemo(
-    () => [...new Set(matches.filter((m) => m.isPast && hasScore(m)).map((m) => m.season))].sort().reverse(),
-    [matches],
-  )
   const scoped = matches.filter((m) => (kind === 'all' || m.kind === kind) && (season === 'all' || m.season === season))
   const s = summarize(scoped)
   const winRate = s.played ? Math.round((s.wins / s.played) * 100) : 0
@@ -102,7 +100,8 @@ export function StatsSection({
   for (const m of matches) {
     if (!m.isPast || !hasScore(m)) continue
     const prev = opponentMap.get(m.opponentKey)
-    if (!prev || prev.last < m.startsAt) opponentMap.set(m.opponentKey, { key: m.opponentKey, name: m.opponent, last: m.startsAt })
+    if (!prev || prev.last < m.startsAt)
+      opponentMap.set(m.opponentKey, { key: m.opponentKey, name: m.opponent, last: m.startsAt })
   }
   const opponents = [...opponentMap.values()].sort((a, b) => a.name.localeCompare(b.name, t.intl))
   const [opponent, setOpponent] = useState('')
@@ -132,7 +131,13 @@ export function StatsSection({
         {seasons.length > 0 && (
           <label className="select-pill">
             <span>{t.matches.season}</span>
-            <select value={season} onChange={(e) => setSeason(e.target.value)}>
+            <select
+              value={season}
+              onChange={(e) => {
+                setSeason(e.target.value)
+                if (needsArchive(e.target.value)) ensureArchive()
+              }}
+            >
               <option value="all">{t.matches.allSeasons}</option>
               {seasons.map((key) => (
                 <option key={key} value={key}>
@@ -144,6 +149,11 @@ export function StatsSection({
         )}
       </div>
 
+      {archiveState === 'loading' && needsArchive(season) && (
+        <p className="archive-status" role="status">
+          {t.archive.loading}
+        </p>
+      )}
       {s.played === 0 ? (
         <p className="state-message" data-reveal>
           {t.stats.empty}
@@ -243,7 +253,15 @@ export function StatsSection({
             <h3 className="subsection-title">{t.stats.h2hTitle}</h3>
             <label className="select-pill">
               <span className="sr-only">{t.stats.h2hPick}</span>
-              <select value={opponent} onChange={(e) => setOpponent(e.target.value)} aria-label={t.stats.h2hPick}>
+              <select
+                value={opponent}
+                onFocus={ensureArchive}
+                onChange={(e) => {
+                  setOpponent(e.target.value)
+                  ensureArchive()
+                }}
+                aria-label={t.stats.h2hPick}
+              >
                 <option value="">{t.stats.h2hPick}…</option>
                 {opponents.map((o) => (
                   <option key={o.key} value={o.key}>

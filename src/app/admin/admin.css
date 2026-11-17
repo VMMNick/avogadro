@@ -159,7 +159,9 @@
   font-size: 0.92rem;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .adm-btn:hover {
@@ -886,4 +888,109 @@
 .adm-search .adm-input {
   flex: 1 1 260px;
   max-width: 420px;
+}
+
+/* ---------- Ролі й лічильники ---------- */
+.adm-nav-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--adm-accent);
+  color: #050d22;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.adm-role {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--adm-muted);
+}
+
+.adm-inline-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.adm-select-sm {
+  width: auto;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.adm-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 20px;
+}
+
+.adm-dl dt {
+  color: var(--adm-muted);
+}
+
+/* ---------- Нагадування на огляді ---------- */
+.adm-reminder {
+  border-color: rgba(242, 179, 33, 0.6);
+  background: rgba(242, 179, 33, 0.08);
+  margin-bottom: 20px;
+}
+
+.adm-reminder-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.adm-reminder-list a {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text);
+  text-decoration: none;
+}
+
+.adm-reminder-list a:hover {
+  border-color: var(--adm-accent);
+  color: var(--adm-accent);
+}
+
+/* ---------- Заявки ---------- */
+.adm-applications {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 16px;
+}
+
+.adm-application header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.adm-application h2 {
+  margin: 0;
+}
+
+.adm-application .adm-dl {
+  margin-bottom: 14px;
+}
+
+.adm-application.is-done {
+  opacity: 0.65;
+}
+
+.adm-pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

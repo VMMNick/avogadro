@@ -7,7 +7,7 @@ export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'TestPassword123'
 export const INVITE_CODE = process.env.ADMIN_INVITE_CODE ?? 'Invite-2026-test'
 
 /** Порожня база (лише адміністратор) або демо-дані. */
-export async function resetDb(request: APIRequestContext, seed?: 'demo') {
+export async function resetDb(request: APIRequestContext, seed?: 'demo' | 'archive') {
   const res = await request.post('/api/test/reset', { data: { seed } })
   expect(res.ok(), 'Сервер має бути запущений з E2E_TEST_MODE=1').toBeTruthy()
 }

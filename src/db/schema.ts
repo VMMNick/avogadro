@@ -1,4 +1,5 @@
 import {
+  boolean,
   check,
   index,
   integer,
@@ -40,10 +41,7 @@ export const players = pgTable(
   },
   (t) => [
     check('players_number_range', sql`${t.number} IS NULL OR ${t.number} BETWEEN 0 AND 99`),
-    check(
-      'players_role_valid',
-      sql`${t.role} IN ('setter','spiker','middle','opposite','libero','staff')`,
-    ),
+    check('players_role_valid', sql`${t.role} IN ('setter','spiker','middle','opposite','libero','staff')`),
   ],
 )
 
@@ -182,9 +180,82 @@ export const admins = pgTable(
     passwordHash: text('password_hash').notNull(),
     // Збільшується при зміні пароля — інвалідовує старі сесії
     sessionVersion: integer('session_version').notNull().default(1),
+    // admin — усе; editor — матчі, гравці, довідники, досягнення, тренування, заявки
+    role: varchar('role', { length: 16 }).$type<AdminRole>().notNull().default('admin'),
     ...timestamps,
   },
-  (t) => [uniqueIndex('admins_email_unique').on(sql`lower(${t.email})`)],
+  (t) => [
+    uniqueIndex('admins_email_unique').on(sql`lower(${t.email})`),
+    check('admins_role_valid', sql`${t.role} IN ('admin','editor')`),
+  ],
+)
+
+export const ADMIN_ROLES = ['admin', 'editor'] as const
+export type AdminRole = (typeof ADMIN_ROLES)[number]
+
+// Досягнення клубу («полиця трофеїв»)
+export const ACHIEVEMENT_KINDS = ['gold', 'silver', 'bronze', 'cup', 'award'] as const
+export type AchievementKind = (typeof ACHIEVEMENT_KINDS)[number]
+
+export const achievements = pgTable(
+  'achievements',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    // Сезон «2025-26»
+    season: varchar('season', { length: 7 }).notNull(),
+    title: varchar('title', { length: 120 }).notNull(),
+    titleEn: varchar('title_en', { length: 120 }),
+    kind: varchar('kind', { length: 16 }).$type<AchievementKind>().notNull(),
+    note: varchar('note', { length: 200 }),
+    ...timestamps,
+  },
+  (t) => [
+    index('achievements_season_idx').on(t.season),
+    check('achievements_kind_valid', sql`${t.kind} IN ('gold','silver','bronze','cup','award')`),
+    check('achievements_season_format', sql`${t.season} ~ '^[0-9]{4}-[0-9]{2}$'`),
+  ],
+)
+
+// Розклад тренувань (щотижневий)
+export const trainings = pgTable(
+  'trainings',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    // 1 — понеділок … 7 — неділя
+    weekday: smallint('weekday').notNull(),
+    startTime: varchar('start_time', { length: 5 }).notNull(),
+    endTime: varchar('end_time', { length: 5 }).notNull(),
+    venueId: uuid('venue_id').references(() => venues.id, { onDelete: 'set null' }),
+    location: varchar('location', { length: 120 }),
+    note: varchar('note', { length: 200 }),
+    ...timestamps,
+  },
+  (t) => [
+    check('trainings_weekday_range', sql`${t.weekday} BETWEEN 1 AND 7`),
+    check(
+      'trainings_time_format',
+      sql`${t.startTime} ~ '^[0-2][0-9]:[0-5][0-9]$' AND ${t.endTime} ~ '^[0-2][0-9]:[0-5][0-9]$'`,
+    ),
+  ],
+)
+
+// Заявки «Хочу до команди»
+export const EXPERIENCE_LEVELS = ['beginner', 'amateur', 'team'] as const
+export type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number]
+
+export const applications = pgTable(
+  'applications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 80 }).notNull(),
+    contact: varchar('contact', { length: 120 }).notNull(),
+    experience: varchar('experience', { length: 16 }).$type<ExperienceLevel>().notNull(),
+    position: varchar('position', { length: 16 }).$type<PlayerRole | 'any'>(),
+    message: text('message'),
+    processed: boolean('processed').notNull().default(false),
+    ...timestamps,
+  },
+  (t) => [index('applications_created_idx').on(t.createdAt)],
 )
 
 export const loginAttempts = pgTable(
@@ -201,7 +272,9 @@ export type Player = typeof players.$inferSelect
 export type Match = typeof matches.$inferSelect
 export type Settings = typeof settings.$inferSelect
 export type Admin = typeof admins.$inferSelect
+export type Achievement = typeof achievements.$inferSelect
+export type Training = typeof trainings.$inferSelect
+export type Application = typeof applications.$inferSelect
 export type Team = typeof teams.$inferSelect
 export type Venue = typeof venues.$inferSelect
 export type Tournament = typeof tournaments.$inferSelect
-

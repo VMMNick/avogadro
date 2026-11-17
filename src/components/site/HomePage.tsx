@@ -10,6 +10,10 @@ import { mapLinks, normalizeMapQuery } from '@/lib/maps'
 import { getSiteContent } from '@/lib/data'
 import { prepareMatches, prepareStandings } from '@/lib/public-data'
 import { StandingsSection } from './StandingsSection'
+import { MatchesProvider } from './MatchesStore'
+import { TrophiesSection } from './TrophiesSection'
+import { TrainingSection } from './TrainingSection'
+import { PwaClient } from './PwaClient'
 import { getDict, localePrefix, type Locale } from '@/lib/i18n'
 import { SITE_URL } from '@/lib/constants'
 import { jsonLdScript, matchJsonLd, teamJsonLd } from '@/lib/seo'
@@ -17,14 +21,11 @@ import { jsonLdScript, matchJsonLd, teamJsonLd } from '@/lib/seo'
 /** Головна сторінка сайту — однакова для української та англійської версій. */
 export async function HomePage({ locale }: { locale: Locale }) {
   const t = getDict(locale)
-  const { players, matches, settings, venues, tournaments, teams, gamesByPlayer, failed } = await getSiteContent()
+  const { players, matches, settings, venues, tournaments, teams, achievements, trainings, gamesByPlayer, failed } =
+    await getSiteContent()
 
-  const { publicMatches, defaultSeason, venueById, tournamentById } = prepareMatches(
-    matches,
-    venues,
-    tournaments,
-    teams,
-  )
+  const { publicMatches, recent, allSeasons, hasArchive, usedTournaments, defaultSeason, venueById, tournamentById } =
+    prepareMatches(matches, venues, tournaments, teams)
 
   const standings = prepareStandings(tournaments, teams, t.clubName)
 
@@ -175,35 +176,35 @@ export async function HomePage({ locale }: { locale: Locale }) {
           </div>
         </section>
 
-        <section id="matches" className="section matches-section">
-          <div className="container">
-            <h2 className="section-title" data-reveal="ribbon">
-              {t.matches.title}
-            </h2>
-            <MatchesSection
-              matches={publicMatches}
-              defaultSeason={defaultSeason}
-              tournaments={tournaments.map(({ id, name }) => ({ id, name }))}
-              locale={locale}
-              siteUrl={SITE_URL}
-            />
-            <CalendarSubscribe feedUrl={`${SITE_URL}${localePrefix(locale)}/calendar.ics`} locale={locale} />
-          </div>
-        </section>
+        <MatchesProvider initial={recent} seasons={allSeasons} hasArchive={hasArchive}>
+          <section id="matches" className="section matches-section">
+            <div className="container">
+              <h2 className="section-title" data-reveal="ribbon">
+                {t.matches.title}
+              </h2>
+              <MatchesSection
+                defaultSeason={defaultSeason}
+                tournaments={usedTournaments.map(({ id, name }) => ({ id, name }))}
+                locale={locale}
+                siteUrl={SITE_URL}
+              />
+              <CalendarSubscribe feedUrl={`${SITE_URL}${localePrefix(locale)}/calendar.ics`} locale={locale} />
+            </div>
+          </section>
 
-        <section id="stats" className="section stats-section">
-          <div className="container">
-            <h2 className="section-title" data-reveal="ribbon">
-              {t.stats.title}
-            </h2>
-            <StatsSection
-              matches={publicMatches}
-              defaultSeason={defaultSeason}
-              locale={locale}
-              players={players.map(({ id, name, number, photoUrl }) => ({ id, name, number, photoUrl }))}
-            />
-          </div>
-        </section>
+          <section id="stats" className="section stats-section">
+            <div className="container">
+              <h2 className="section-title" data-reveal="ribbon">
+                {t.stats.title}
+              </h2>
+              <StatsSection
+                defaultSeason={defaultSeason}
+                locale={locale}
+                players={players.map(({ id, name, number, photoUrl }) => ({ id, name, number, photoUrl }))}
+              />
+            </div>
+          </section>
+        </MatchesProvider>
 
         {standings.length > 0 && (
           <section id="standings" className="section standings-section">
@@ -215,6 +216,26 @@ export async function HomePage({ locale }: { locale: Locale }) {
             </div>
           </section>
         )}
+
+        {achievements.length > 0 && (
+          <section id="trophies" className="section trophies-section">
+            <div className="container">
+              <h2 className="section-title" data-reveal="ribbon">
+                {t.trophies.title}
+              </h2>
+              <TrophiesSection achievements={achievements} locale={locale} />
+            </div>
+          </section>
+        )}
+
+        <section id="join" className="section join-section">
+          <div className="container">
+            <h2 className="section-title" data-reveal="ribbon">
+              {t.join.title}
+            </h2>
+            <TrainingSection trainings={trainings} venues={venueById} locale={locale} />
+          </div>
+        </section>
 
         <section id="contacts" className="section contacts-section">
           <div className="container">
@@ -253,6 +274,10 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         <p>
           © {new Date().getFullYear()} {t.footer.rights}
         </p>
+        <p className="footer-links">
+          <a href={`${localePrefix(locale)}/calendar`}>{t.calendarPage.title}</a>
+        </p>
+        <PwaClient locale={locale} />
       </div>
     </footer>
   )

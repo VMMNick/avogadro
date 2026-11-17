@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { MATCH_KINDS, PLAYER_ROLES } from '@/db/schema'
+import { ACHIEVEMENT_KINDS, EXPERIENCE_LEVELS, MATCH_KINDS, PLAYER_ROLES, type PlayerRole } from '@/db/schema'
 import { fromKyivInputValue } from './format'
 import { normalizeMapQuery } from './maps'
 
@@ -91,7 +91,14 @@ export const matchSchema = z
       ctx.addIssue({ code: 'custom', path: ['ourSets'], message: 'Обидві команди не можуть виграти 3 сети' })
       return z.NEVER
     }
-    return { opponent: v.opponent, startsAt: v.startsAt, location: v.location, ourSets: our, theirSets: their, kind: v.kind }
+    return {
+      opponent: v.opponent,
+      startsAt: v.startsAt,
+      location: v.location,
+      ourSets: our,
+      theirSets: their,
+      kind: v.kind,
+    }
   })
 
 export const settingsSchema = z.object({
@@ -112,10 +119,7 @@ export const settingsSchema = z.object({
   telegram: optionalHttpsUrl,
 })
 
-export const passwordSchema = z
-  .string()
-  .min(10, 'Пароль — мінімум 10 символів')
-  .max(128, 'Пароль задовгий')
+export const passwordSchema = z.string().min(10, 'Пароль — мінімум 10 символів').max(128, 'Пароль задовгий')
 
 export const newAdminSchema = z.object({
   name: z.string().trim().min(2, "Вкажіть ім'я").max(80),
@@ -180,7 +184,8 @@ export function parseSetScores(formData: FormData): { sets: [number, number][]; 
   while (rows.length && rows.at(-1)![0] === '' && rows.at(-1)![1] === '') rows.pop()
   const sets: [number, number][] = []
   for (const [i, [a, b]] of rows.entries()) {
-    if (a === '' || b === '') return { sets: [], error: `Сет ${i + 1}: заповніть очки обох команд (або залиште сет порожнім)` }
+    if (a === '' || b === '')
+      return { sets: [], error: `Сет ${i + 1}: заповніть очки обох команд (або залиште сет порожнім)` }
     const our = Number(a)
     const their = Number(b)
     if (![our, their].every((n) => Number.isInteger(n) && n >= 0 && n <= 99)) {
@@ -234,3 +239,53 @@ export function fivbPoints(our: number, their: number) {
   if (our === 3) return their === 2 ? 2 : 3
   return our === 2 ? 1 : 0
 }
+
+// ---------- Досягнення, тренування, заявки ----------
+
+export const achievementSchema = z.object({
+  season: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}$/, 'Оберіть сезон')
+    .refine((v) => {
+      const start = Number(v.slice(0, 4))
+      return Number(v.slice(5)) === (start + 1) % 100 && start >= 1990 && start <= 2100
+    }, 'Невірний сезон'),
+  title: z.string().trim().min(2, 'Вкажіть назву (мінімум 2 символи)').max(120, 'Максимум 120 символів'),
+  titleEn: optionalText(120),
+  kind: z.enum(ACHIEVEMENT_KINDS, { message: 'Оберіть нагороду' }),
+  note: optionalText(200),
+})
+
+const timeField = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Час у форматі ГГ:ХХ')
+
+export const trainingSchema = z
+  .object({
+    weekday: z.coerce.number().int().min(1, 'Оберіть день').max(7, 'Оберіть день'),
+    startTime: timeField,
+    endTime: timeField,
+    location: optionalText(120),
+    note: optionalText(200),
+  })
+  .refine((v) => v.endTime > v.startTime, { message: 'Кінець має бути пізніше за початок', path: ['endTime'] })
+
+export const applicationSchema = z.object({
+  name: z.string().trim().min(2, "Вкажіть ім'я").max(80, 'Максимум 80 символів'),
+  contact: z
+    .string()
+    .trim()
+    .min(5, 'Вкажіть телефон, email або нік у Telegram')
+    .max(120, 'Максимум 120 символів')
+    .refine((v) => /[\d@]/.test(v), 'Вкажіть телефон, email або нік у Telegram (@нік)'),
+  experience: z.enum(EXPERIENCE_LEVELS, { message: 'Оберіть досвід' }),
+  position: z
+    .string()
+    .transform((v) => (v === '' ? null : v))
+    .refine((v) => v === null || v === 'any' || (PLAYER_ROLES as readonly string[]).includes(v), 'Оберіть амплуа')
+    .transform((v) => v as PlayerRole | 'any' | null),
+  message: optionalText(1000),
+  consent: z.literal('on', { message: 'Потрібна згода на обробку даних, щоб ми могли з вами зв’язатися' }),
+})

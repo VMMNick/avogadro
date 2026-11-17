@@ -34,6 +34,10 @@ test.describe('доступність', () => {
     const href = await page.locator('#matches .match-card a:has-text("Детальніше")').first().getAttribute('href')
     await audit(page, href!)
     await audit(page, `/en${href}`)
+    await audit(page, `${href}/poster`)
+    await audit(page, '/calendar')
+    await audit(page, '/en/calendar')
+    await audit(page, '/en/no-such-page')
     await audit(page, '/admin/login')
     await audit(page, '/admin/register')
   })
@@ -52,6 +56,12 @@ test.describe('доступність', () => {
       '/admin/tournaments',
       '/admin/settings',
       '/admin/admins',
+      '/admin/account',
+      '/admin/achievements',
+      '/admin/achievements/new',
+      '/admin/trainings',
+      '/admin/trainings/new',
+      '/admin/applications',
     ]) {
       await audit(page, url)
     }
