@@ -1,0 +1,39 @@
+# Щотижнева перевірка залежностей: GitHub сам відкриває pull request з оновленнями,
+# а автотести (.github/workflows/tests.yml) перевіряють, що нічого не зламалось.
+# Оновлення з виправленнями безпеки приходять одразу, не чекаючи понеділка.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '07:00'
+      timezone: Europe/Kyiv
+    open-pull-requests-limit: 5
+    labels: [dependencies]
+    commit-message:
+      prefix: 'deps'
+    groups:
+      # Дрібні оновлення — одним pull request на тиждень
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Великі версії Next.js і React оновлюємо вручну — вони можуть змінювати поведінку
+      - dependency-name: next
+        update-types: ['version-update:semver-major']
+      - dependency-name: react
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-dom
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '07:00'
+      timezone: Europe/Kyiv
+    labels: [dependencies]
+    commit-message:
+      prefix: 'ci'

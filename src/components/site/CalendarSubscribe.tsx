@@ -1,5 +1,6 @@
 'use client'
 
+import { CalendarBadge } from './Icons'
 import { useState } from 'react'
 import { subscribeUrls } from '@/lib/calendar'
 import { getDict, type Locale } from '@/lib/i18n'
@@ -12,7 +13,10 @@ export function CalendarSubscribe({ feedUrl, locale }: { feedUrl: string; locale
   return (
     <div className="calendar-card" data-reveal>
       <div className="calendar-copy">
-        <h3 className="subsection-title">📅 {t.calendar.title}</h3>
+        <h3 className="subsection-title">
+          <CalendarBadge />
+          {t.calendar.title}
+        </h3>
         <p>{t.calendar.text}</p>
       </div>
       <div className="calendar-actions">

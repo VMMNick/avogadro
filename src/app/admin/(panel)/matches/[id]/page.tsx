@@ -15,9 +15,11 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export default async function EditMatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   if (!UUID_RE.test(id)) notFound()
-  const [[match], dirs] = await Promise.all([
-    getDb().select().from(schema.matches).where(eq(schema.matches.id, id)).limit(1),
+  const db = getDb()
+  const [[match], dirs, lineup] = await Promise.all([
+    db.select().from(schema.matches).where(eq(schema.matches.id, id)).limit(1),
     getDirectoryOptions(),
+    db.select({ id: schema.matchPlayers.playerId }).from(schema.matchPlayers).where(eq(schema.matchPlayers.matchId, id)),
   ])
   if (!match) notFound()
   const { teams, venues, tournaments } = toOptions(dirs)
@@ -38,10 +40,14 @@ export default async function EditMatchPage({ params }: { params: Promise<{ id: 
           teamId: match.teamId,
           venueId: match.venueId,
           tournamentId: match.tournamentId,
+          setScores: match.setScores,
+          mvpPlayerId: match.mvpPlayerId,
+          lineup: lineup.map((r) => r.id),
         }}
         teams={teams}
         venues={venues}
         tournaments={tournaments}
+        players={dirs.players}
       />
       <section className="adm-card" style={{ marginTop: 20 }}>
         <h2>Видалення</h2>

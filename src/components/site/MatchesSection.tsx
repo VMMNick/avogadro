@@ -1,5 +1,6 @@
 'use client'
 
+import { CalendarIcon, PinIcon } from './Icons'
 import { useMemo, useState } from 'react'
 import type { MatchKind } from '@/db/schema'
 import { mapLinks } from '@/lib/maps'
@@ -38,12 +39,38 @@ export function MatchCard({ match, locale, siteUrl }: { match: PublicMatch; loca
         ) : (
           <span className="vs-badge">{match.isPast ? '—' : t.matches.vs}</span>
         )}
-        <span className="team-title">{match.opponent}</span>
+        <span className="team-title">
+          {match.opponentLogo ? (
+            <span className="team-title-with-logo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="team-logo" src={match.opponentLogo} alt="" width={40} height={40} loading="lazy" />
+              {match.opponent}
+            </span>
+          ) : (
+            match.opponent
+          )}
+        </span>
       </div>
+      {match.sets && match.sets.length > 0 && (
+        <p className="match-sets" aria-label={t.detail.sets}>
+          {match.sets.map(([a, b], i) => (
+            <span key={i}>
+              {i > 0 && ' · '}
+              {a > b ? (
+                <b>
+                  {a}:{b}
+                </b>
+              ) : (
+                `${a}:${b}`
+              )}
+            </span>
+          ))}
+        </p>
+      )}
       {match.location && (
         <div className="match-location">
           <a href={mapLinks(match.mapQuery ?? match.location).open} target="_blank" rel="noopener noreferrer">
-            📍 {match.location}
+            <PinIcon /> {match.location}
           </a>
         </div>
       )}
@@ -64,7 +91,7 @@ export function MatchCard({ match, locale, siteUrl }: { match: PublicMatch; loca
             target="_blank"
             rel="noopener noreferrer"
           >
-            📅 {t.matches.addToCalendar}
+            <CalendarIcon /> {t.matches.addToCalendar}
           </a>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { CalendarIcon, PinIcon } from './Icons'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getMatchDetail, isPastMatch } from '@/lib/data'
@@ -57,7 +58,7 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
   const data = await loadMatch(id)
   if (!data) notFound()
   const t = getDict(locale)
-  const { match, venue, tournament, h2h } = data
+  const { match, venue, tournament, team, lineup, mvp, h2h } = data
   const prefix = localePrefix(locale)
   const past = isPastMatch(match)
   const scored = match.ourSets !== null && match.theirSets !== null
@@ -115,9 +116,14 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
                 <span className="match-hero-vs">{t.matches.vs}</span>
               )}
               <span className="match-hero-team">
-                <span className="match-hero-initial" aria-hidden="true">
-                  {match.opponent.trim().charAt(0).toUpperCase()}
-                </span>
+                {team?.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="match-hero-logo" src={team.logoUrl} alt="" width={64} height={64} />
+                ) : (
+                  <span className="match-hero-initial" aria-hidden="true">
+                    {match.opponent.trim().charAt(0).toUpperCase()}
+                  </span>
+                )}
                 <span>{match.opponent}</span>
               </span>
             </h1>
@@ -138,7 +144,7 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
                     {venue?.address && <span className="match-facts-sub">{venue.address}</span>}
                     {mapQuery && (
                       <a href={mapLinks(mapQuery).open} target="_blank" rel="noopener noreferrer" className="match-link">
-                        📍 {t.detail.openMap}
+                        <PinIcon /> {t.detail.openMap}
                       </a>
                     )}
                   </dd>
@@ -160,7 +166,7 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
               {!past && (
                 <>
                   <a className="btn-primary" href={googleCalendarUrl(event)} target="_blank" rel="noopener noreferrer">
-                    📅 {t.calendar.eventGoogle}
+                    <CalendarIcon /> {t.calendar.eventGoogle}
                   </a>
                   <a className="btn-ghost" href={`${prefix}/matches/${match.id}/event.ics`} download>
                     {t.calendar.eventIcs}
@@ -170,6 +176,82 @@ export async function MatchPage({ id, locale }: { id: string; locale: Locale }) 
               <ShareButton url={url} title={event.title} label={t.detail.share} copiedLabel={t.detail.copied} />
             </div>
           </article>
+
+          {match.setScores && match.setScores.length > 0 && (
+            <section className="match-block" data-reveal aria-labelledby="sets-title">
+              <h2 className="subsection-title" id="sets-title">
+                {t.detail.sets}
+              </h2>
+              <div className="table-scroll">
+                <table className="sets-table">
+                  <thead>
+                    <tr>
+                      <td />
+                      {match.setScores.map((_, i) => (
+                        <th key={i} scope="col">
+                          {t.detail.set(i + 1)}
+                        </th>
+                      ))}
+                      <th scope="col">{t.detail.total}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { name: t.clubName, side: 0 as const },
+                      { name: match.opponent, side: 1 as const },
+                    ].map(({ name, side }) => (
+                      <tr key={side}>
+                        <th scope="row">{name}</th>
+                        {match.setScores!.map((set, i) => (
+                          <td key={i} className={set[side] > set[1 - side] ? 'is-won' : undefined}>
+                            {set[side]}
+                          </td>
+                        ))}
+                        <td>{match.setScores!.reduce((sum, set) => sum + set[side], 0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {(mvp || lineup.length > 0) && (
+            <section className="match-block" data-reveal aria-labelledby="lineup-title">
+              {mvp && (
+                <div className="mvp-card">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={mvp.photoUrl ?? '/default-player.svg'} alt="" width={72} height={72} />
+                  <div>
+                    <span className="contact-label">★ {t.detail.mvp}</span>
+                    <strong>
+                      {mvp.number !== null && `#${mvp.number} `}
+                      {mvp.name}
+                    </strong>
+                  </div>
+                </div>
+              )}
+              {lineup.length > 0 && (
+                <>
+                  <h2 className="subsection-title" id="lineup-title">
+                    {t.detail.lineup}
+                  </h2>
+                  <ul className="lineup-list">
+                    {lineup.map((p) => (
+                      <li key={p.id} className={p.id === mvp?.id ? 'is-mvp' : undefined}>
+                        <span className="lineup-number">{p.number !== null ? `#${p.number}` : '—'}</span>
+                        <span>
+                          {p.name}
+                          {p.id === mvp?.id && <span className="sr-only"> — {t.detail.mvp}</span>}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {!lineup.length && <h2 className="sr-only" id="lineup-title">{t.detail.mvp}</h2>}
+            </section>
+          )}
 
           <section className="h2h-card" data-reveal aria-labelledby="h2h-title">
             <div className="h2h-head">

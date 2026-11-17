@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { MatchKind } from '@/db/schema'
 import { formatMatchDate, getDict, localePrefix, type Locale } from '@/lib/i18n'
-import { hasScore, isWin, type PublicMatch } from '@/lib/public-types'
+import { hasScore, isWin, type PublicMatch, type PublicPlayerRef } from '@/lib/public-types'
 import { seasonLabel } from '@/lib/seasons'
 
 type KindFilter = 'all' | MatchKind
@@ -18,6 +18,11 @@ export type Summary = {
   streak: number
   /** Останні до 5 результатів, від найстарішого до найновішого */
   form: boolean[]
+  /** Очки за матчами, де внесено рахунок по сетах */
+  pointsFor: number
+  pointsAgainst: number
+  /** Сет з найбільшою сумою очок */
+  longest: { our: number; their: number; opponent: string; matchId: string } | null
 }
 
 /** Підсумки за списком зіграних матчів з рахунком. */
@@ -38,17 +43,35 @@ export function summarize(list: PublicMatch[]): Summary {
     setsAgainst: played.reduce((s, m) => s + m.theirSets!, 0),
     streak,
     form: results.slice(-5),
+    ...pointsSummary(played),
   }
+}
+
+function pointsSummary(list: PublicMatch[]) {
+  let pointsFor = 0
+  let pointsAgainst = 0
+  let longest: Summary['longest'] = null
+  for (const m of list) {
+    for (const [our, their] of m.sets ?? []) {
+      pointsFor += our
+      pointsAgainst += their
+      if (!longest || our + their > longest.our + longest.their)
+        longest = { our, their, opponent: m.opponent, matchId: m.id }
+    }
+  }
+  return { pointsFor, pointsAgainst, longest }
 }
 
 export function StatsSection({
   matches,
   defaultSeason,
   locale,
+  players,
 }: {
   matches: PublicMatch[]
   defaultSeason: string
   locale: Locale
+  players: PublicPlayerRef[]
 }) {
   const t = getDict(locale)
   const [season, setSeason] = useState(defaultSeason)
@@ -58,22 +81,30 @@ export function StatsSection({
     () => [...new Set(matches.filter((m) => m.isPast && hasScore(m)).map((m) => m.season))].sort().reverse(),
     [matches],
   )
-  const scoped = matches.filter(
-    (m) => (kind === 'all' || m.kind === kind) && (season === 'all' || m.season === season),
-  )
+  const scoped = matches.filter((m) => (kind === 'all' || m.kind === kind) && (season === 'all' || m.season === season))
   const s = summarize(scoped)
   const winRate = s.played ? Math.round((s.wins / s.played) * 100) : 0
 
-  // Суперники, з якими вже грали (за весь час)
-  const opponents = useMemo(() => {
-    const map = new Map<string, { key: string; name: string; last: string }>()
-    for (const m of matches) {
-      if (!m.isPast || !hasScore(m)) continue
-      const prev = map.get(m.opponentKey)
-      if (!prev || prev.last < m.startsAt) map.set(m.opponentKey, { key: m.opponentKey, name: m.opponent, last: m.startsAt })
+  // MVP: хто найчастіше був найкращим у вибраних іграх
+  const playerById = new Map(players.map((p) => [p.id, p]))
+  const mvpCounts = new Map<string, number>()
+  for (const m of scoped) {
+    if (m.isPast && m.mvpPlayerId && playerById.has(m.mvpPlayerId)) {
+      mvpCounts.set(m.mvpPlayerId, (mvpCounts.get(m.mvpPlayerId) ?? 0) + 1)
     }
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, t.intl))
-  }, [matches, t.intl])
+  }
+  const mvpTop = [...mvpCounts.entries()]
+    .sort((a, b) => b[1] - a[1] || playerById.get(a[0])!.name.localeCompare(playerById.get(b[0])!.name, t.intl))
+    .slice(0, 3)
+
+  // Суперники, з якими вже грали (за весь час)
+  const opponentMap = new Map<string, { key: string; name: string; last: string }>()
+  for (const m of matches) {
+    if (!m.isPast || !hasScore(m)) continue
+    const prev = opponentMap.get(m.opponentKey)
+    if (!prev || prev.last < m.startsAt) opponentMap.set(m.opponentKey, { key: m.opponentKey, name: m.opponent, last: m.startsAt })
+  }
+  const opponents = [...opponentMap.values()].sort((a, b) => a.name.localeCompare(b.name, t.intl))
   const [opponent, setOpponent] = useState('')
   const h2hMatches = opponent
     ? matches
@@ -161,6 +192,47 @@ export function StatsSection({
               {t.stats.streak}: {s.streak > 0 ? t.stats.streakWin(s.streak) : t.stats.streakLoss(-s.streak)}
             </span>
           </div>
+        </div>
+      )}
+      {s.played > 0 && (s.pointsFor + s.pointsAgainst > 0 || s.longest || mvpTop.length > 0) && (
+        <div className="stats-extra" data-reveal="stagger">
+          {s.pointsFor + s.pointsAgainst > 0 && (
+            <div className="stat-tile">
+              <span className="stat-value">
+                {s.pointsFor}:{s.pointsAgainst}
+              </span>
+              <span className="stat-label">{t.stats.points}</span>
+            </div>
+          )}
+          {s.longest && (
+            <a className="stat-tile is-link" href={`${localePrefix(locale)}/matches/${s.longest.matchId}`}>
+              <span className="stat-value">
+                {s.longest.our}:{s.longest.their}
+              </span>
+              <span className="stat-label">{t.stats.longestSet}</span>
+              <span className="stat-sub">{t.stats.longestSetVs(s.longest.opponent)}</span>
+            </a>
+          )}
+          {mvpTop.length > 0 && (
+            <div className="stat-tile is-mvp">
+              <span className="stat-label">★ {season === 'all' ? t.stats.mvpAll : t.stats.mvpTitle}</span>
+              <ol className="mvp-list">
+                {mvpTop.map(([id, n]) => {
+                  const p = playerById.get(id)!
+                  return (
+                    <li key={id}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.photoUrl ?? '/default-player.svg'} alt="" width={40} height={40} loading="lazy" />
+                      <span className="mvp-name">
+                        {p.number !== null && <span className="mvp-number">#{p.number}</span>} {p.name}
+                      </span>
+                      <span className="mvp-count">{t.stats.mvpTimes(n)}</span>
+                    </li>
+                  )
+                })}
+              </ol>
+            </div>
+          )}
         </div>
       )}
       <p className="stats-note">{t.stats.note}</p>

@@ -21,9 +21,12 @@ import {
   formToObject,
   matchSchema,
   newAdminSchema,
+  parseSetScores,
+  MAX_SETS,
   playerSchema,
   registerSchema,
   settingsSchema,
+  standingsSchema,
   teamSchema,
   tournamentSchema,
   venueSchema,
@@ -223,8 +226,20 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
   const tournamentName = String(formData.get('tournamentName') ?? '').trim()
   const saveTeam = formData.get('saveTeam') === 'on'
   const saveVenue = formData.get('saveVenue') === 'on'
+  const lineupIds = [...new Set(formData.getAll('lineup').map(String).filter((v) => UUID_RE.test(v)))]
+  const mvpRaw = String(formData.get('mvpPlayerId') ?? '')
+  const mvpPlayerId = UUID_RE.test(mvpRaw) ? mvpRaw : null
+  const setFields = Object.fromEntries(
+    Array.from({ length: MAX_SETS }, (_, i) => [
+      [`set${i + 1}our`, String(formData.get(`set${i + 1}our`) ?? '')],
+      [`set${i + 1}their`, String(formData.get(`set${i + 1}their`) ?? '')],
+    ]).flat(),
+  )
   const values = {
     ...raw,
+    ...setFields,
+    lineup: lineupIds.join(','),
+    mvpPlayerId: mvpPlayerId ?? '',
     teamId: teamChoice,
     venueId: venueChoice,
     tournamentId: tournamentChoice,
@@ -259,8 +274,24 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
     tournamentId = tr.id
   }
 
+  // Очки сетів задано — загальний рахунок рахуємо з них
+  const { sets, error: setsError } = parseSetScores(formData)
+  if (setsError) return { errors: { sets: setsError }, values }
+  if (sets.length) {
+    raw.ourSets = String(sets.filter(([a, b]) => a > b).length)
+    raw.theirSets = String(sets.filter(([a, b]) => a < b).length)
+  }
+
   const parsed = matchSchema.safeParse(raw)
   if (!parsed.success) return { errors: fieldErrors(parsed.error), values }
+  // Склад і MVP — лише гравці, які ще існують
+  const known = new Set(
+    (await db.select({ id: schema.players.id }).from(schema.players)).map((p) => p.id),
+  )
+  const lineup = lineupIds.filter((pid) => known.has(pid))
+  const mvp = mvpPlayerId && known.has(mvpPlayerId) ? mvpPlayerId : null
+  if (mvp && lineup.length && !lineup.includes(mvp)) lineup.push(mvp) // MVP точно грав
+
   if (tournamentChoice === 'new') {
     if (tournamentName.length < 2 || tournamentName.length > 120) {
       return { errors: { tournamentName: 'Вкажіть назву турніру (2–120 символів)' }, values }
@@ -279,9 +310,17 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
     venueId = venue.id
     parsed.data.location = venue.name.slice(0, 120)
   }
-  const data = { ...parsed.data, teamId, venueId, tournamentId }
+  const data = {
+    ...parsed.data,
+    teamId,
+    venueId,
+    tournamentId,
+    setScores: sets.length ? sets : null,
+    mvpPlayerId: mvp,
+  }
 
   const id = idFrom(formData)
+  let matchId: string
   if (id) {
     const updated = await db
       .update(schema.matches)
@@ -289,8 +328,14 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
       .where(eq(schema.matches.id, id))
       .returning({ id: schema.matches.id })
     if (!updated.length) return { message: 'Матч не знайдено — можливо, його вже видалили.', values }
+    matchId = id
   } else {
-    await db.insert(schema.matches).values(data)
+    const [created] = await db.insert(schema.matches).values(data).returning({ id: schema.matches.id })
+    matchId = created.id
+  }
+  await db.delete(schema.matchPlayers).where(eq(schema.matchPlayers.matchId, matchId))
+  if (lineup.length) {
+    await db.insert(schema.matchPlayers).values(lineup.map((playerId) => ({ matchId, playerId })))
   }
 
   refreshSite('/admin/matches', '/admin', '/admin/teams', '/admin/venues', '/admin/tournaments')
@@ -327,14 +372,36 @@ export async function saveTeamAction(_prev: FormState, formData: FormData): Prom
     .limit(1)
   if (dup) return { errors: { name: 'Команда з такою назвою вже є в довіднику' }, values: raw }
 
-  if (id) {
-    const updated = await db.update(schema.teams).set(parsed.data).where(eq(schema.teams.id, id)).returning({ id: schema.teams.id })
-    if (!updated.length) return { message: 'Команду не знайдено — можливо, її вже видалили.', values: raw }
-    // Перейменування — оновлюємо назву і в матчах з цією командою
-    await db.update(schema.matches).set({ opponent: parsed.data.name }).where(eq(schema.matches.teamId, id))
-  } else {
-    await db.insert(schema.teams).values(parsed.data)
+  const existing = id ? (await db.select().from(schema.teams).where(eq(schema.teams.id, id)).limit(1))[0] : undefined
+  if (id && !existing) return { message: 'Команду не знайдено — можливо, її вже видалили.', values: raw }
+
+  // Логотип команди (необов'язково)
+  let logoUrl = existing?.logoUrl ?? null
+  const oldLogo = logoUrl
+  const file = formData.get('photo')
+  try {
+    if (file instanceof File && file.size > 0) logoUrl = await savePhoto(file, 'teams')
+    else if (formData.get('removePhoto') === 'on') logoUrl = null
+  } catch (err) {
+    if (err instanceof UploadError) return { errors: { photo: err.message }, values: raw }
+    console.error(err)
+    return { errors: { photo: 'Не вдалося завантажити логотип. Спробуйте ще раз.' }, values: raw }
   }
+
+  const values = { ...parsed.data, logoUrl }
+  try {
+    if (existing) {
+      await db.update(schema.teams).set(values).where(eq(schema.teams.id, existing.id))
+      // Перейменування — оновлюємо назву і в матчах з цією командою
+      await db.update(schema.matches).set({ opponent: parsed.data.name }).where(eq(schema.matches.teamId, existing.id))
+    } else {
+      await db.insert(schema.teams).values(values)
+    }
+  } catch (err) {
+    if (logoUrl && logoUrl !== oldLogo) await deletePhoto(logoUrl)
+    throw err
+  }
+  if (oldLogo && oldLogo !== logoUrl) await deletePhoto(oldLogo)
   refreshSite('/admin/teams', '/admin/matches')
   redirect('/admin/teams?saved=1')
 }
@@ -344,7 +411,11 @@ export async function deleteTeamAction(formData: FormData) {
   const id = idFrom(formData)
   if (!id) return
   // Матчі лишаються — з назвою суперника, але без зв'язку з довідником
-  await getDb().delete(schema.teams).where(eq(schema.teams.id, id))
+  const [deleted] = await getDb()
+    .delete(schema.teams)
+    .where(eq(schema.teams.id, id))
+    .returning({ logoUrl: schema.teams.logoUrl })
+  if (deleted) await deletePhoto(deleted.logoUrl)
   refreshSite('/admin/teams', '/admin/matches')
   redirect('/admin/teams?deleted=1')
 }
@@ -420,6 +491,33 @@ export async function saveTournamentAction(_prev: FormState, formData: FormData)
   }
   refreshSite('/admin/tournaments', '/admin/matches')
   redirect('/admin/tournaments?saved=1')
+}
+
+export async function saveStandingsAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin()
+  const id = idFrom(formData)
+  if (!id) return { message: 'Турнір не знайдено.' }
+  const json = String(formData.get('standings') ?? '[]')
+  let rows: unknown
+  try {
+    rows = JSON.parse(json)
+  } catch {
+    return { message: 'Не вдалося прочитати таблицю. Оновіть сторінку й спробуйте ще раз.', values: { standings: json } }
+  }
+  const parsed = standingsSchema.safeParse(rows)
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]
+    const row = typeof issue.path[0] === 'number' ? `Рядок ${issue.path[0] + 1}: ` : ''
+    return { message: `${row}${issue.message}`, values: { standings: json } }
+  }
+  const updated = await getDb()
+    .update(schema.tournaments)
+    .set({ standings: parsed.data.length ? parsed.data : null, standingsUpdatedAt: parsed.data.length ? new Date() : null })
+    .where(eq(schema.tournaments.id, id))
+    .returning({ id: schema.tournaments.id })
+  if (!updated.length) return { message: 'Турнір не знайдено — можливо, його вже видалили.' }
+  refreshSite('/admin/tournaments', `/admin/tournaments/${id}`)
+  return { ok: true, message: parsed.data.length ? 'Таблицю збережено. Вона вже на сайті.' : 'Таблицю очищено.', values: { standings: JSON.stringify(parsed.data) } }
 }
 
 export async function deleteTournamentAction(formData: FormData) {

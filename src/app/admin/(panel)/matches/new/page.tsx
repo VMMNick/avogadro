@@ -13,7 +13,7 @@ export default async function NewMatchPage({ searchParams }: { searchParams: Pro
       <div className="adm-page-head">
         <h1>{friendly ? 'Нова товариська гра' : 'Новий матч'}</h1>
       </div>
-      <MatchForm initialKind={friendly ? 'friendly' : 'official'} teams={teams} venues={venues} tournaments={tournaments} />
+      <MatchForm initialKind={friendly ? 'friendly' : 'official'} teams={teams} venues={venues} tournaments={tournaments} players={dirs.players} />
     </>
   )
 }

@@ -2,6 +2,8 @@ import {
   check,
   index,
   integer,
+  jsonb,
+  primaryKey,
   pgTable,
   smallint,
   text,
@@ -52,6 +54,7 @@ export const teams = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     name: varchar('name', { length: 80 }).notNull(),
     city: varchar('city', { length: 80 }),
+    logoUrl: text('logo_url'),
     ...timestamps,
   },
   (t) => [uniqueIndex('teams_name_unique').on(sql`lower(${t.name})`)],
@@ -72,11 +75,27 @@ export const venues = pgTable(
 )
 
 // Довідник турнірів: чемпіонат, кубок, ліга…
+/** Рядок турнірної таблиці. teamId — команда з довідника; us — «Авогадро». */
+export type StandingRow = {
+  teamId: string | null
+  us: boolean
+  name: string
+  played: number
+  wins: number
+  losses: number
+  setsFor: number
+  setsAgainst: number
+  points: number
+}
+
 export const tournaments = pgTable(
   'tournaments',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     name: varchar('name', { length: 120 }).notNull(),
+    // Турнірна таблиця ведеться вручну в адмінці
+    standings: jsonb('standings').$type<StandingRow[]>(),
+    standingsUpdatedAt: timestamp('standings_updated_at', { withTimezone: true }),
     ...timestamps,
   },
   (t) => [uniqueIndex('tournaments_name_unique').on(sql`lower(${t.name})`)],
@@ -98,6 +117,10 @@ export const matches = pgTable(
     theirSets: smallint('their_sets'),
     // Офіційний матч чи товариська гра
     kind: varchar('kind', { length: 16 }).$type<MatchKind>().notNull().default('official'),
+    // Рахунок кожного сету: [очки «Авогадро», очки суперника]
+    setScores: jsonb('set_scores').$type<[number, number][]>(),
+    // Найкращий гравець матчу
+    mvpPlayerId: uuid('mvp_player_id').references(() => players.id, { onDelete: 'set null' }),
     ...timestamps,
   },
   (t) => [
@@ -108,6 +131,20 @@ export const matches = pgTable(
       sql`(${t.ourSets} IS NULL AND ${t.theirSets} IS NULL) OR (${t.ourSets} BETWEEN 0 AND 3 AND ${t.theirSets} BETWEEN 0 AND 3)`,
     ),
   ],
+)
+
+// Хто грав у матчі
+export const matchPlayers = pgTable(
+  'match_players',
+  {
+    matchId: uuid('match_id')
+      .notNull()
+      .references(() => matches.id, { onDelete: 'cascade' }),
+    playerId: uuid('player_id')
+      .notNull()
+      .references(() => players.id, { onDelete: 'cascade' }),
+  },
+  (t) => [primaryKey({ columns: [t.matchId, t.playerId] }), index('match_players_player_idx').on(t.playerId)],
 )
 
 // Один рядок з id = 1

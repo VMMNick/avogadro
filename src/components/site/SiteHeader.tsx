@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EmblemSmall } from './Emblem'
 import { getDict, localePrefix, type Locale } from '@/lib/i18n'
 
@@ -22,12 +22,17 @@ export function SiteHeader({
 }) {
   const t = getDict(locale)
   const [open, setOpen] = useState(false)
+  const toggleRef = useRef<HTMLButtonElement>(null)
   const base = onHome ? '' : `${localePrefix(locale)}/`
 
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        setOpen(false)
+        // Фокус повертається на кнопку меню — зручно для керування з клавіатури
+        toggleRef.current?.focus()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -37,7 +42,7 @@ export function SiteHeader({
     <>
       <header className="header">
         <div className="container header-container">
-          <a href={onHome ? '#top' : `${localePrefix(locale)}/`} className="logo" aria-label={t.logoLabel}>
+          <a href={onHome ? '#top' : `${localePrefix(locale)}/`} className="logo" title={t.logoLabel}>
             <EmblemSmall className="logo-emblem" size={48} />
             <span className="logo-text">
               <span className="logo-name">{t.clubName}</span>
@@ -45,6 +50,7 @@ export function SiteHeader({
             </span>
           </a>
           <button
+            ref={toggleRef}
             className="nav-toggle"
             type="button"
             aria-label={open ? t.menuClose : t.menuOpen}
@@ -72,10 +78,11 @@ export function SiteHeader({
               className="lang-switch"
               hrefLang={locale === 'uk' ? 'en' : 'uk'}
               lang={locale === 'uk' ? 'en' : 'uk'}
-              aria-label={`${t.langSwitch.label}: ${t.langSwitch.otherFull}`}
+              title={`${t.langSwitch.label}: ${t.langSwitch.otherFull}`}
               style={{ '--i': SECTIONS.length } as React.CSSProperties}
             >
               {t.langSwitch.other}
+              <span className="sr-only"> — {t.langSwitch.otherFull}</span>
             </a>
           </nav>
         </div>

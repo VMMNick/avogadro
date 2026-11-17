@@ -3,11 +3,15 @@ import { listTeams } from '@/lib/data'
 import { DeleteButton } from '@/components/admin/ui'
 import { deleteTeamAction } from '../../actions'
 import { Flash } from '@/components/admin/Flash'
+import { SearchBox } from '@/components/admin/SearchBox'
+import { matchesSearch } from '@/lib/search'
 
 export const metadata = { title: 'Команди' }
 
 export default async function TeamsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  const [teams, params] = await Promise.all([listTeams(), searchParams])
+  const [all, params] = await Promise.all([listTeams(), searchParams])
+  const q = (params.q ?? '').slice(0, 80)
+  const teams = q ? all.filter((t) => matchesSearch(q, t.name, t.city)) : all
   return (
     <>
       <div className="adm-page-head">
@@ -21,8 +25,11 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
         Довідник суперників. У формі матчу команду обирають зі списку, а не вводять щоразу.
       </p>
       <section className="adm-card">
-        {teams.length === 0 ? (
+        {all.length > 0 && <SearchBox label="Пошук команди" placeholder="Пошук за назвою або містом…" found={teams.length} />}
+        {all.length === 0 ? (
           <p className="adm-empty">Довідник порожній. Додайте першу команду.</p>
+        ) : teams.length === 0 ? (
+          <p className="adm-empty">За запитом «{q}» нічого не знайдено.</p>
         ) : (
           <table className="adm-table">
             <thead>
@@ -37,7 +44,13 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
               {teams.map((t) => (
                 <tr key={t.id}>
                   <td>
-                    <Link href={`/admin/teams/${t.id}`}>{t.name}</Link>
+                    <span className="adm-team-name">
+                      {t.logoUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img className="adm-logo-thumb" src={t.logoUrl} alt="" />
+                      )}
+                      <Link href={`/admin/teams/${t.id}`}>{t.name}</Link>
+                    </span>
                   </td>
                   <td className="adm-hide-sm">{t.city ?? '—'}</td>
                   <td>{t.matches}</td>

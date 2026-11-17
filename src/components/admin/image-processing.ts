@@ -31,7 +31,7 @@ async function decode(blob: Blob): Promise<ImageBitmap> {
   }
 }
 
-function toBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
+function toBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
   return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality))
 }
 
@@ -88,12 +88,22 @@ export async function loadImage(file: File): Promise<LoadedImage> {
 export type CropArea = { x: number; y: number; width: number; height: number }
 
 /** Готує файл для завантаження: обрізка (необов'язково) + зменшення + WebP (або JPEG). */
-export async function exportImage(image: LoadedImage, crop: CropArea | null): Promise<File> {
+export async function exportImage(
+  image: LoadedImage,
+  crop: CropArea | null,
+  opts: { maxSide?: number; keepTransparency?: boolean } = {},
+): Promise<File> {
   const area = crop ?? { x: 0, y: 0, width: image.width, height: image.height }
-  const canvas = drawScaled(image.bitmap, area.x, area.y, area.width, area.height, OUTPUT_MAX_SIDE)
+  const canvas = drawScaled(image.bitmap, area.x, area.y, area.width, area.height, opts.maxSide ?? OUTPUT_MAX_SIDE)
 
   const webp = await toBlob(canvas, 'image/webp', QUALITY)
   if (webp && webp.type === 'image/webp') return new File([webp], 'photo.webp', { type: 'image/webp' })
+
+  // Логотипи з прозорим фоном: PNG замість JPEG, щоб не з'явився чорний фон
+  if (opts.keepTransparency) {
+    const png = await toBlob(canvas, 'image/png')
+    if (png) return new File([png], 'photo.png', { type: 'image/png' })
+  }
 
   const jpeg = await toBlob(canvas, 'image/jpeg', QUALITY)
   if (!jpeg) throw new ImageReadError('Браузер не зміг стиснути фото.')

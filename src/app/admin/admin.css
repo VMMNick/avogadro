@@ -622,14 +622,14 @@
 }
 
 .adm-sort-label {
-  color: var(--adm-muted, #9aa6c2);
+  color: var(--adm-muted);
   font-size: 0.85rem;
   margin-right: 4px;
 }
 
 .adm-sort .adm-btn[aria-current='true'] {
-  border-color: var(--adm-accent, #f2b321);
-  color: var(--adm-accent, #f2b321);
+  border-color: var(--adm-accent);
+  color: var(--adm-accent);
 }
 
 .adm-th-sort {
@@ -640,7 +640,7 @@
 
 .adm-th-sort:hover,
 .adm-th-sort[aria-current='true'] {
-  color: var(--adm-accent, #f2b321);
+  color: var(--adm-accent);
 }
 
 /* ---------- Мобільна версія ---------- */
@@ -733,4 +733,157 @@
 .adm-field .adm-check {
   font-weight: 400;
   margin-top: 4px;
+}
+
+/* ---------- Очки по сетах і склад на гру ---------- */
+.adm-sets,
+.adm-lineup {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.adm-sets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px 18px;
+  margin-bottom: 8px;
+}
+
+.adm-set-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-set-row .adm-input {
+  text-align: center;
+  min-width: 0;
+}
+
+.adm-set-no {
+  font-size: 0.85rem;
+  color: var(--adm-muted);
+}
+
+.adm-score-auto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 110px;
+  font-weight: 700;
+}
+
+.adm-lineup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.adm-lineup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px 16px;
+}
+
+/* ---------- Логотипи команд ---------- */
+.adm-logo-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px;
+  flex: none;
+}
+
+.adm-team-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-photo.is-logo .adm-photo-preview {
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #fff;
+  padding: 8px;
+}
+
+/* ---------- Редактор турнірної таблиці ---------- */
+.adm-standings {
+  display: grid;
+  gap: 10px;
+}
+
+.adm-standings-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(0, 3fr) auto;
+  align-items: end;
+  gap: 10px 14px;
+  padding: 12px;
+  margin: 0;
+  min-width: 0;
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+}
+
+.adm-standings-team {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.adm-standings-nums {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.adm-standings-nums label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--adm-muted);
+  min-width: 0;
+}
+
+.adm-standings-nums .adm-input {
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
+  min-width: 0;
+}
+
+.adm-standings-tools {
+  display: flex;
+  gap: 4px;
+}
+
+@media (max-width: 900px) {
+  .adm-standings-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .adm-standings-nums {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Пошук у списках ---------- */
+.adm-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 14px;
+}
+
+.adm-search .adm-input {
+  flex: 1 1 260px;
+  max-width: 420px;
 }

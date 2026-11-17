@@ -8,7 +8,8 @@ import { StatsSection } from './StatsSection'
 import { CalendarSubscribe } from './CalendarSubscribe'
 import { mapLinks, normalizeMapQuery } from '@/lib/maps'
 import { getSiteContent } from '@/lib/data'
-import { prepareMatches } from '@/lib/public-data'
+import { prepareMatches, prepareStandings } from '@/lib/public-data'
+import { StandingsSection } from './StandingsSection'
 import { getDict, localePrefix, type Locale } from '@/lib/i18n'
 import { SITE_URL } from '@/lib/constants'
 import { jsonLdScript, matchJsonLd, teamJsonLd } from '@/lib/seo'
@@ -16,9 +17,16 @@ import { jsonLdScript, matchJsonLd, teamJsonLd } from '@/lib/seo'
 /** Головна сторінка сайту — однакова для української та англійської версій. */
 export async function HomePage({ locale }: { locale: Locale }) {
   const t = getDict(locale)
-  const { players, matches, settings, venues, tournaments, failed } = await getSiteContent()
+  const { players, matches, settings, venues, tournaments, teams, gamesByPlayer, failed } = await getSiteContent()
 
-  const { publicMatches, defaultSeason, venueById, tournamentById } = prepareMatches(matches, venues, tournaments)
+  const { publicMatches, defaultSeason, venueById, tournamentById } = prepareMatches(
+    matches,
+    venues,
+    tournaments,
+    teams,
+  )
+
+  const standings = prepareStandings(tournaments, teams, t.clubName)
 
   const tagline = (locale === 'en' ? settings?.taglineEn : settings?.tagline) || t.hero.tagline
   const about = ((locale === 'en' ? settings?.aboutEn : settings?.about) || t.about.text)
@@ -71,9 +79,7 @@ export async function HomePage({ locale }: { locale: Locale }) {
   }
 
   // Розмітка для пошуковиків: клуб + найближчі ігри
-  const upcoming = matches
-    .filter((m) => !publicMatches.find((p) => p.id === m.id)?.isPast)
-    .slice(0, 10)
+  const upcoming = matches.filter((m) => !publicMatches.find((p) => p.id === m.id)?.isPast).slice(0, 10)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -155,7 +161,15 @@ export async function HomePage({ locale }: { locale: Locale }) {
             ) : (
               <TeamSection
                 locale={locale}
-                players={players.map(({ id, name, number, role, photoUrl }) => ({ id, name, number, role, photoUrl }))}
+                players={players.map(({ id, name, number, role, photoUrl }) => ({
+                  id,
+                  name,
+                  number,
+                  role,
+                  photoUrl,
+                  games: gamesByPlayer[id] ?? 0,
+                  mvps: matches.filter((m) => m.mvpPlayerId === id).length,
+                }))}
               />
             )}
           </div>
@@ -182,9 +196,25 @@ export async function HomePage({ locale }: { locale: Locale }) {
             <h2 className="section-title" data-reveal="ribbon">
               {t.stats.title}
             </h2>
-            <StatsSection matches={publicMatches} defaultSeason={defaultSeason} locale={locale} />
+            <StatsSection
+              matches={publicMatches}
+              defaultSeason={defaultSeason}
+              locale={locale}
+              players={players.map(({ id, name, number, photoUrl }) => ({ id, name, number, photoUrl }))}
+            />
           </div>
         </section>
+
+        {standings.length > 0 && (
+          <section id="standings" className="section standings-section">
+            <div className="container">
+              <h2 className="section-title" data-reveal="ribbon">
+                {t.standings.title}
+              </h2>
+              <StandingsSection tables={standings} locale={locale} />
+            </div>
+          </section>
+        )}
 
         <section id="contacts" className="section contacts-section">
           <div className="container">

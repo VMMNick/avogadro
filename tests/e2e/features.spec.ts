@@ -58,7 +58,7 @@ test.describe('сезони, статистика, календар, сторі�
     ok((await page.locator('#stats .stat-tile.is-loss .stat-value').textContent()) === '2', '2 поразки')
     ok((await value('Сети')) === '7:9', 'сети 7:9')
     ok((await page.locator('#stats .form-pill').count()) === 4, 'форма: 4 останні гри')
-    ok(((await page.locator('#stats .stat-sub').textContent()) ?? '').includes('2 перемоги поспіль'), 'серія: 2 перемоги поспіль')
+    ok(((await page.locator('#stats .stat-tile.is-wide .stat-sub').textContent()) ?? '').includes('2 перемоги поспіль'), 'серія: 2 перемоги поспіль')
 
     await page.click('#stats button:has-text("Товариські")')
     ok((await page.locator('#stats .state-message').count()) === 1, 'у товариських ще немає зіграних ігор')

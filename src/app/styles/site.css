@@ -2089,6 +2089,10 @@ a {
     grid-column: 1 / -1;
   }
 
+  .stats-extra {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .calendar-card,
   .h2h-card {
     padding: 20px;
@@ -2128,4 +2132,373 @@ a {
     padding: 10px 18px;
     border: 1px solid var(--line-strong);
   }
+}
+
+/* =========================================================
+   Сети, склад, MVP, турнірна таблиця, логотипи команд
+   ========================================================= */
+
+.stats-extra {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.stat-tile.is-link {
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.25s ease;
+}
+
+.stat-tile.is-link:hover {
+  transform: translateY(-3px);
+}
+
+.stat-tile.is-mvp {
+  align-items: stretch;
+  text-align: left;
+}
+
+.stat-tile.is-mvp .stat-label {
+  text-align: center;
+}
+
+.mvp-list {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.mvp-list li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.mvp-list img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold);
+}
+
+.mvp-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.mvp-number,
+.mvp-count {
+  color: var(--gold);
+  font-family: var(--font-label);
+  letter-spacing: 1px;
+}
+
+.mvp-count {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* статистика на картці гравця */
+.player-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.player-mvp {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* рахунок по сетах на картці матчу */
+.match-sets {
+  margin: -4px 0 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.match-sets b {
+  color: var(--white);
+  font-weight: 600;
+}
+
+/* ---------- Сторінка матчу: сети, склад, MVP ---------- */
+.match-block {
+  margin-top: 24px;
+  padding: 24px 28px;
+  border-radius: var(--radius);
+  background: rgba(12, 28, 64, 0.55);
+  border: 1px solid var(--line);
+}
+
+.sets-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sets-table th,
+.sets-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line-white);
+}
+
+.sets-table th {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.sets-table th[scope='row'] {
+  text-align: left;
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.sets-table .is-won {
+  color: var(--gold-light);
+  font-weight: 700;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lineup-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.lineup-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--navy-800);
+}
+
+.lineup-list li.is-mvp {
+  outline: 2px solid var(--gold);
+}
+
+.lineup-number {
+  min-width: 34px;
+  font-family: var(--font-display);
+  color: var(--gold);
+}
+
+.mvp-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.mvp-card img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--gold);
+}
+
+.mvp-card strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+/* ---------- Турнірна таблиця ---------- */
+.standings-card {
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(var(--navy-800), var(--navy-900)) padding-box,
+    linear-gradient(180deg, var(--line-strong), rgba(242, 179, 33, 0.12)) border-box;
+  border: 1px solid transparent;
+  box-shadow: var(--shadow);
+}
+
+.standings-table {
+  width: 100%;
+  min-width: 460px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.standings-table caption {
+  text-align: left;
+  padding-bottom: 10px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 10px 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--line-white);
+}
+
+.standings-table thead th {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.standings-table .col-team {
+  text-align: left;
+}
+
+.standings-table td.col-team {
+  font-weight: 600;
+}
+
+.standings-table .col-points {
+  font-family: var(--font-display);
+  color: var(--white);
+}
+
+.standings-table tr.is-us {
+  background: rgba(242, 179, 33, 0.12);
+}
+
+.standings-table tr.is-us td.col-team {
+  color: var(--gold-light);
+}
+
+.team-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ---------- Логотипи команд ---------- */
+.team-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 2px;
+  flex: none;
+}
+
+.team-title-with-logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-title-with-logo .team-logo {
+  width: 40px;
+  height: 40px;
+}
+
+.match-hero-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 6px;
+}
+
+@media (max-width: 600px) {
+  .match-block {
+    padding: 18px 16px;
+  }
+
+  .standings-card {
+    padding: 14px 8px;
+  }
+
+  /* таблиця вміщається на екрані телефона без прокрутки */
+  .standings-table {
+    min-width: 0;
+    font-size: 0.85rem;
+  }
+
+  .standings-table th,
+  .standings-table td {
+    padding: 9px 3px;
+  }
+
+  .standings-table caption {
+    padding: 0 4px 10px;
+  }
+
+  .standings-table .team-logo {
+    width: 22px;
+    height: 22px;
+  }
+
+  .standings-table .team-cell {
+    gap: 6px;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ---------- Іконки ---------- */
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: -0.2em;
+}
+
+.match-link,
+.match-location a,
+.match-facts .match-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary .icon {
+  margin-right: 4px;
+  vertical-align: -0.25em;
+}
+
+/* золотий «щит» з емблеми з календарем усередині */
+.icon-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 50px;
+  padding-bottom: 6px;
+  flex: none;
+  color: var(--navy-950);
+  background: var(--gold-grad);
+  clip-path: var(--shield);
+  filter: drop-shadow(0 4px 10px rgba(242, 179, 33, 0.35));
+}
+
+.calendar-copy .subsection-title {
+  gap: 14px;
 }

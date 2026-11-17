@@ -163,3 +163,74 @@ export function fieldErrors(error: z.ZodError): FieldErrors {
 export function formToObject(formData: FormData, keys: string[]) {
   return Object.fromEntries(keys.map((k) => [k, String(formData.get(k) ?? '')]))
 }
+
+// ---------- Рахунок по сетах ----------
+
+export const MAX_SETS = 5
+
+/**
+ * Читає очки сетів з полів set1our / set1their … set5their.
+ * Порожні рядки в кінці ігноруються. Повертає сети або помилку для поля «sets».
+ */
+export function parseSetScores(formData: FormData): { sets: [number, number][]; error?: string } {
+  const rows: [string, string][] = []
+  for (let i = 1; i <= MAX_SETS; i++) {
+    rows.push([String(formData.get(`set${i}our`) ?? '').trim(), String(formData.get(`set${i}their`) ?? '').trim()])
+  }
+  while (rows.length && rows.at(-1)![0] === '' && rows.at(-1)![1] === '') rows.pop()
+  const sets: [number, number][] = []
+  for (const [i, [a, b]] of rows.entries()) {
+    if (a === '' || b === '') return { sets: [], error: `Сет ${i + 1}: заповніть очки обох команд (або залиште сет порожнім)` }
+    const our = Number(a)
+    const their = Number(b)
+    if (![our, their].every((n) => Number.isInteger(n) && n >= 0 && n <= 99)) {
+      return { sets: [], error: `Сет ${i + 1}: очки — цілі числа від 0 до 99` }
+    }
+    if (our === their) return { sets: [], error: `Сет ${i + 1}: у сеті не буває нічиєї` }
+    sets.push([our, their])
+  }
+  // Гра закінчується, щойно хтось виграв 3 сети
+  let w = 0
+  let l = 0
+  for (const [i, [our, their]] of sets.entries()) {
+    if (w === 3 || l === 3) return { sets: [], error: `Сет ${i + 1} зайвий: гра вже закінчилась на 3 виграних сетах` }
+    if (our > their) w++
+    else l++
+  }
+  if (sets.length && w !== 3 && l !== 3) {
+    return { sets: [], error: 'За сетами ніхто не виграв 3 сети — додайте решту сетів' }
+  }
+  return { sets }
+}
+
+// ---------- Турнірна таблиця ----------
+
+const count = z.number().int('Ціле число').min(0, 'Не менше 0').max(999, 'Не більше 999')
+
+export const standingRowSchema = z
+  .object({
+    teamId: z.string().uuid().nullable(),
+    us: z.boolean(),
+    name: z.string().trim().min(1, 'Вкажіть команду').max(80, 'Максимум 80 символів'),
+    played: count,
+    wins: count,
+    losses: count,
+    setsFor: count,
+    setsAgainst: count,
+    points: count,
+  })
+  .refine((r) => r.wins + r.losses === r.played, {
+    message: 'Перемоги + поразки мають дорівнювати кількості ігор',
+    path: ['played'],
+  })
+
+export const standingsSchema = z
+  .array(standingRowSchema)
+  .max(30, 'Не більше 30 команд')
+  .refine((rows) => rows.filter((r) => r.us).length <= 1, 'Рядок «Авогадро» може бути лише один')
+
+/** Очки за матч за правилами FIVB: 3:0 і 3:1 — 3, 3:2 — 2, 2:3 — 1, поразка 0:3 / 1:3 — 0. */
+export function fivbPoints(our: number, their: number) {
+  if (our === 3) return their === 2 ? 2 : 3
+  return our === 2 ? 1 : 0
+}

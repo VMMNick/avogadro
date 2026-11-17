@@ -17,7 +17,7 @@ const LOCAL_PREFIX = '/uploads/'
 export class UploadError extends Error {}
 
 /** Зберігає фото у Vercel Blob (або в public/uploads під час локальної розробки). */
-export async function savePhoto(file: File, folder: 'players'): Promise<string> {
+export async function savePhoto(file: File, folder: 'players' | 'teams'): Promise<string> {
   const ext = ALLOWED_TYPES[file.type]
   if (!ext) throw new UploadError('Підтримуються лише JPG, PNG або WebP.')
   if (file.size > MAX_UPLOAD_BYTES) throw new UploadError('Файл завеликий (максимум 3 МБ).')

@@ -19,6 +19,7 @@ import { ROLE_LABELS } from '@/lib/constants'
 import type { FormState } from '@/lib/validation'
 import { Field, FormMessage, inputProps, PasswordInput, SubmitButton } from './ui'
 import { PhotoInput } from './PhotoInput'
+import { LineupPicker, ScoreInputs, type LineupPlayer } from './MatchExtras'
 
 const initial: FormState = {}
 
@@ -138,6 +139,9 @@ export type MatchFormValues = {
   teamId: string | null
   venueId: string | null
   tournamentId: string | null
+  setScores: [number, number][] | null
+  mvpPlayerId: string | null
+  lineup: string[]
 }
 
 export type DirectoryOption = { id: string; label: string }
@@ -243,12 +247,14 @@ export function MatchForm({
   teams,
   venues,
   tournaments,
+  players,
 }: {
   match?: MatchFormValues
   initialKind?: 'official' | 'friendly'
   teams: DirectoryOption[]
   venues: DirectoryOption[]
   tournaments: DirectoryOption[]
+  players: LineupPlayer[]
 }) {
   const [state, action] = useActionState(saveMatchAction, initial)
   const e = state.errors ?? {}
@@ -345,41 +351,22 @@ export function MatchForm({
           maxLength={120}
           initialSave
         />
-        <div className="adm-field is-wide">
-          <span className="adm-label">Рахунок за сетами (після гри)</span>
-          <div className="adm-score">
-            <input
-              className="adm-input"
-              type="number"
-              min={0}
-              max={3}
-              name="ourSets"
-              aria-label="Сети Авогадро"
-              placeholder="Авогадро"
-              defaultValue={pick(state, 'ourSets', match?.ourSets)}
-              aria-invalid={e.ourSets ? true : undefined}
-            />
-            <span>:</span>
-            <input
-              className="adm-input"
-              type="number"
-              min={0}
-              max={3}
-              name="theirSets"
-              aria-label="Сети суперника"
-              placeholder="Суперник"
-              defaultValue={pick(state, 'theirSets', match?.theirSets)}
-              aria-invalid={e.ourSets ? true : undefined}
-            />
-          </div>
-          {e.ourSets ? (
-            <span className="adm-error" role="alert">
-              {e.ourSets}
-            </span>
-          ) : (
-            <span className="adm-hint">Залиште порожнім, поки гру не зіграно. Спершу — сети «Авогадро».</span>
+        <ScoreInputs
+          initialOur={pick(state, 'ourSets', match?.ourSets)}
+          initialTheir={pick(state, 'theirSets', match?.theirSets)}
+          initialSets={Array.from({ length: 5 }, (_, k) =>
+            state.values
+              ? ([state.values[`set${k + 1}our`] ?? '', state.values[`set${k + 1}their`] ?? ''] as [string, string])
+              : ((match?.setScores?.[k]?.map(String) as [string, string] | undefined) ?? ['', '']),
           )}
-        </div>
+          totalError={e.ourSets}
+          setsError={e.sets}
+        />
+        <LineupPicker
+          players={players}
+          initialLineup={state.values ? (state.values.lineup ? state.values.lineup.split(',') : []) : (match?.lineup ?? [])}
+          initialMvp={pick(state, 'mvpPlayerId', match?.mvpPlayerId)}
+        />
       </div>
       <div className="adm-actions">
         <SubmitButton>{match?.id ? 'Зберегти зміни' : initialKind === 'friendly' ? 'Додати гру' : 'Додати матч'}</SubmitButton>
@@ -391,7 +378,7 @@ export function MatchForm({
   )
 }
 
-export type TeamFormValues = { id?: string; name: string; city: string | null }
+export type TeamFormValues = { id?: string; name: string; city: string | null; logoUrl: string | null }
 
 export function TeamForm({ team }: { team?: TeamFormValues }) {
   const [state, action] = useActionState(saveTeamAction, initial)
@@ -407,6 +394,7 @@ export function TeamForm({ team }: { team?: TeamFormValues }) {
         <Field name="city" label="Місто" error={e.city} hint="Необов'язково">
           <input className="adm-input" defaultValue={pick(state, 'city', team?.city)} maxLength={80} {...inputProps('city', state)} />
         </Field>
+        <PhotoInput current={team?.logoUrl ?? null} error={e.photo} logo />
       </div>
       {team?.id && <p className="adm-hint">Якщо змінити назву, вона оновиться і в усіх матчах з цією командою.</p>}
       <div className="adm-actions">

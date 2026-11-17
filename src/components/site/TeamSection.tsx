@@ -11,6 +11,10 @@ export type PublicPlayer = {
   number: number | null
   role: PlayerRole
   photoUrl: string | null
+  /** Зіграно ігор (за відміченим складом) */
+  games: number
+  /** Скільки разів був MVP матчу */
+  mvps: number
 }
 
 export function TeamSection({ players, locale }: { players: PublicPlayer[]; locale: Locale }) {
@@ -56,6 +60,12 @@ export function TeamSection({ players, locale }: { players: PublicPlayer[]; loca
               <div className="player-info">
                 <h3>{p.name}</h3>
                 <p className="player-role">{t.roles[p.role]}</p>
+                {(p.games > 0 || p.mvps > 0) && (
+                  <p className="player-stats">
+                    {p.games > 0 && <span>{t.team.games(p.games)}</span>}
+                    {p.mvps > 0 && <span className="player-mvp">★ {t.team.mvps(p.mvps)}</span>}
+                  </p>
+                )}
               </div>
             </article>
           ))
