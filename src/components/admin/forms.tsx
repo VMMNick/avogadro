@@ -11,6 +11,7 @@ import {
   savePlayerAction,
   saveSettingsAction,
   saveTeamAction,
+  saveTournamentAction,
   saveVenueAction,
 } from '@/app/admin/actions'
 import { PLAYER_ROLES } from '@/db/schema'
@@ -136,6 +137,7 @@ export type MatchFormValues = {
   kind: 'official' | 'friendly'
   teamId: string | null
   venueId: string | null
+  tournamentId: string | null
 }
 
 export type DirectoryOption = { id: string; label: string }
@@ -146,6 +148,7 @@ function DirectoryPicker({
   selectName,
   textName,
   saveName,
+  manageLabel,
   options,
   initialChoice,
   initialText,
@@ -161,7 +164,9 @@ function DirectoryPicker({
   label: string
   selectName: string
   textName: string
-  saveName: string
+  saveName?: string
+  /** Назва розділу з довідником, напр. «Команди» */
+  manageLabel: string
   options: DirectoryOption[]
   initialChoice: string
   initialText: string
@@ -213,7 +218,7 @@ function DirectoryPicker({
           />
         )}
       </div>
-      {manual && (
+      {manual && saveName && (
         <label className="adm-check">
           <input type="checkbox" name={saveName} defaultChecked={initialSave} />
           {saveLabel}
@@ -225,7 +230,7 @@ function DirectoryPicker({
         </span>
       ) : (
         <span className="adm-hint">
-          Список редагується в розділі <Link href={manageHref}>{label === 'Суперник' ? '«Команди»' : '«Зали»'}</Link>.
+          Список редагується в розділі <Link href={manageHref}>«{manageLabel}»</Link>.
         </span>
       )}
     </div>
@@ -237,11 +242,13 @@ export function MatchForm({
   initialKind = 'official',
   teams,
   venues,
+  tournaments,
 }: {
   match?: MatchFormValues
   initialKind?: 'official' | 'friendly'
   teams: DirectoryOption[]
   venues: DirectoryOption[]
+  tournaments: DirectoryOption[]
 }) {
   const [state, action] = useActionState(saveMatchAction, initial)
   const e = state.errors ?? {}
@@ -249,6 +256,7 @@ export function MatchForm({
   // Існуючий матч без зв'язку з довідником (старі записи) — показуємо як введений вручну
   const teamChoice = pick(state, 'teamId', match ? (match.teamId ?? 'new') : teams.length ? '' : 'new')
   const venueChoice = pick(state, 'venueId', match ? (match.venueId ?? (match.location ? 'new' : '')) : '')
+  const tournamentChoice = pick(state, 'tournamentId', match?.tournamentId ?? '')
   // Галочку «додати до довідника» зберігаємо лише якщо поле ручного вводу вже було відкрите
   const v = state.values
   const saveTeam = v?.teamId === 'new' ? v.saveTeam === 'on' : true
@@ -288,6 +296,7 @@ export function MatchForm({
           newLabel="+ Інша команда (ввести назву)"
           saveLabel="Додати команду до довідника"
           manageHref="/admin/teams"
+          manageLabel="Команди"
           error={e.opponent}
           maxLength={80}
           required
@@ -315,9 +324,26 @@ export function MatchForm({
           newLabel="+ Інший зал (ввести назву)"
           saveLabel="Додати зал до довідника"
           manageHref="/admin/venues"
+          manageLabel="Зали"
           error={e.location}
           maxLength={120}
           initialSave={saveVenue}
+        />
+        <DirectoryPicker
+          label="Турнір"
+          selectName="tournamentId"
+          textName="tournamentName"
+          options={tournaments}
+          initialChoice={tournamentChoice}
+          initialText={pick(state, 'tournamentName', '')}
+          placeholder="— Без турніру —"
+          newLabel="+ Новий турнір (ввести назву)"
+          saveLabel=""
+          manageHref="/admin/tournaments"
+          manageLabel="Турніри"
+          error={e.tournamentName}
+          maxLength={120}
+          initialSave
         />
         <div className="adm-field is-wide">
           <span className="adm-label">Рахунок за сетами (після гри)</span>
@@ -430,9 +456,33 @@ export function VenueForm({ venue }: { venue?: VenueFormValues }) {
   )
 }
 
+export type TournamentFormValues = { id?: string; name: string }
+
+export function TournamentForm({ tournament }: { tournament?: TournamentFormValues }) {
+  const [state, action] = useActionState(saveTournamentAction, initial)
+  const e = state.errors ?? {}
+  return (
+    <form action={action} className="adm-form adm-card" key={formKey(state)}>
+      {tournament?.id && <input type="hidden" name="id" value={tournament.id} />}
+      <FormMessage state={state} />
+      <Field name="name" label="Назва турніру" error={e.name} hint="Наприклад: Чемпіонат області, Кубок міста, Аматорська ліга">
+        <input className="adm-input" defaultValue={pick(state, 'name', tournament?.name)} required maxLength={120} {...inputProps('name', state)} />
+      </Field>
+      <div className="adm-actions">
+        <SubmitButton>{tournament?.id ? 'Зберегти зміни' : 'Додати турнір'}</SubmitButton>
+        <Link href="/admin/tournaments" className="adm-btn">
+          Скасувати
+        </Link>
+      </div>
+    </form>
+  )
+}
+
 export type SettingsFormValues = {
   tagline: string | null
   about: string | null
+  taglineEn: string | null
+  aboutEn: string | null
   phone: string | null
   email: string | null
   address: string | null
@@ -465,6 +515,14 @@ export function SettingsForm({ settings }: { settings: SettingsFormValues }) {
         {text('tagline', 'Слоган під заголовком', { wide: true, max: 160 })}
         <Field name="about" label="Текст «Про клуб»" error={e.about} hint="Абзаци розділяйте порожнім рядком">
           <textarea className="adm-textarea" defaultValue={pick(state, 'about', settings.about)} maxLength={5000} {...inputProps('about', state)} />
+        </Field>
+      </section>
+      <section className="adm-card adm-form">
+        <h2>Англійська версія сайту (/en)</h2>
+        <p className="adm-hint">Необов&apos;язково. Якщо залишити порожнім, на англійській версії буде стандартний текст.</p>
+        {text('taglineEn', 'Tagline (слоган англійською)', { wide: true, max: 160 })}
+        <Field name="aboutEn" label="About (текст «Про клуб» англійською)" error={e.aboutEn} hint="Абзаци розділяйте порожнім рядком">
+          <textarea className="adm-textarea" lang="en" defaultValue={pick(state, 'aboutEn', settings.aboutEn)} maxLength={5000} {...inputProps('aboutEn', state)} />
         </Field>
       </section>
       <section className="adm-card adm-form">

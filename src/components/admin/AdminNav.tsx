@@ -9,6 +9,7 @@ const LINKS = [
   { href: '/admin/matches', label: 'Матчі' },
   { href: '/admin/teams', label: 'Команди' },
   { href: '/admin/venues', label: 'Зали' },
+  { href: '/admin/tournaments', label: 'Турніри' },
   { href: '/admin/settings', label: 'Налаштування сайту' },
   { href: '/admin/admins', label: 'Адміністратори' },
 ]

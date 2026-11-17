@@ -5,6 +5,7 @@ import '@fontsource/russo-one/cyrillic-400.css'
 import '@fontsource/russo-one/latin-400.css'
 import './styles/site.css'
 import { SITE_URL } from '@/lib/constants'
+import { SiteAnalytics } from '@/components/SiteAnalytics'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -22,6 +23,9 @@ export const metadata: Metadata = {
     description: 'Склад команди, розклад і результати матчів волейбольного клубу «Авогадро».',
     images: [{ url: '/images/emblem-1024.png', width: 1024, height: 1024, alt: 'Емблема ВК «Авогадро»' }],
   },
+  alternates: {
+    types: { 'text/calendar': '/calendar.ics' },
+  },
 }
 
 export const viewport: Viewport = {
@@ -31,7 +35,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="uk">
-      <body>{children}</body>
+      <body>
+        {children}
+        <SiteAnalytics />
+      </body>
     </html>
   )
 }

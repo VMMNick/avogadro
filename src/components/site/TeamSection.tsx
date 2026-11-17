@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import type { PlayerRole } from '@/db/schema'
-import { ROLE_FILTERS, ROLE_LABELS } from '@/lib/constants'
+import { PLAYER_ROLES } from '@/db/schema'
+import { getDict, type Locale } from '@/lib/i18n'
 
 export type PublicPlayer = {
   id: string
@@ -12,31 +13,32 @@ export type PublicPlayer = {
   photoUrl: string | null
 }
 
-export function TeamSection({ players }: { players: PublicPlayer[] }) {
+export function TeamSection({ players, locale }: { players: PublicPlayer[]; locale: Locale }) {
+  const t = getDict(locale)
   const [role, setRole] = useState<PlayerRole | 'all'>('all')
   const visible = role === 'all' ? players : players.filter((p) => p.role === role)
 
   return (
     <>
-      <div className="filters" data-reveal role="group" aria-label="Фільтр за амплуа">
-        {ROLE_FILTERS.map((f) => (
+      <div className="filters" data-reveal role="group" aria-label={t.team.filterLabel}>
+        {(['all', ...PLAYER_ROLES] as const).map((value) => (
           <button
-            key={f.value}
+            key={value}
             type="button"
-            className={`filter-btn${role === f.value ? ' active' : ''}`}
-            aria-pressed={role === f.value}
-            onClick={() => setRole(f.value)}
+            className={`filter-btn${role === value ? ' active' : ''}`}
+            aria-pressed={role === value}
+            onClick={() => setRole(value)}
           >
-            {f.label}
+            {t.roleFilters[value]}
           </button>
         ))}
       </div>
 
       <div className="team-grid" data-reveal="stagger" aria-live="polite">
         {players.length === 0 ? (
-          <p className="state-message">Склад команди ще не додано.</p>
+          <p className="state-message">{t.team.empty}</p>
         ) : visible.length === 0 ? (
-          <p className="state-message">У цій категорії поки нікого немає.</p>
+          <p className="state-message">{t.team.emptyRole}</p>
         ) : (
           visible.map((p) => (
             <article key={p.id} className="player-card">
@@ -53,7 +55,7 @@ export function TeamSection({ players }: { players: PublicPlayer[] }) {
               </div>
               <div className="player-info">
                 <h3>{p.name}</h3>
-                <p className="player-role">{ROLE_LABELS[p.role]}</p>
+                <p className="player-role">{t.roles[p.role]}</p>
               </div>
             </article>
           ))

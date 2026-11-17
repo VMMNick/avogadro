@@ -14,6 +14,8 @@ export default async function SettingsPage() {
         settings={{
           tagline: s?.tagline ?? null,
           about: s?.about ?? null,
+          taglineEn: s?.taglineEn ?? null,
+          aboutEn: s?.aboutEn ?? null,
           phone: s?.phone ?? null,
           email: s?.email ?? null,
           address: s?.address ?? null,

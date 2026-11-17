@@ -25,6 +25,7 @@ import {
   registerSchema,
   settingsSchema,
   teamSchema,
+  tournamentSchema,
   venueSchema,
   type FormState,
 } from '@/lib/validation'
@@ -32,7 +33,8 @@ import {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function refreshSite(...adminPaths: string[]) {
-  revalidatePath('/')
+  // Уся публічна частина: головна (обидві мови), сторінки матчів, календарі
+  revalidatePath('/', 'layout')
   for (const p of adminPaths) revalidatePath(p)
 }
 
@@ -197,14 +199,39 @@ async function findOrCreateVenue(db: Db, name: string): Promise<{ id: string; na
   return created ?? (await findOrCreateVenue(db, name))
 }
 
+async function findOrCreateTournament(db: Db, name: string): Promise<{ id: string; name: string }> {
+  const [found] = await db
+    .select({ id: schema.tournaments.id, name: schema.tournaments.name })
+    .from(schema.tournaments)
+    .where(sql`lower(${schema.tournaments.name}) = lower(${name})`)
+    .limit(1)
+  if (found) return found
+  const [created] = await db
+    .insert(schema.tournaments)
+    .values({ name })
+    .onConflictDoNothing()
+    .returning({ id: schema.tournaments.id, name: schema.tournaments.name })
+  return created ?? (await findOrCreateTournament(db, name))
+}
+
 export async function saveMatchAction(_prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin()
   const raw = formToObject(formData, ['opponent', 'startsAt', 'location', 'ourSets', 'theirSets', 'kind'])
   const teamChoice = directoryChoice(formData, 'teamId')
   const venueChoice = directoryChoice(formData, 'venueId')
+  const tournamentChoice = directoryChoice(formData, 'tournamentId')
+  const tournamentName = String(formData.get('tournamentName') ?? '').trim()
   const saveTeam = formData.get('saveTeam') === 'on'
   const saveVenue = formData.get('saveVenue') === 'on'
-  const values = { ...raw, teamId: teamChoice, venueId: venueChoice, saveTeam: saveTeam ? 'on' : '', saveVenue: saveVenue ? 'on' : '' }
+  const values = {
+    ...raw,
+    teamId: teamChoice,
+    venueId: venueChoice,
+    tournamentId: tournamentChoice,
+    tournamentName,
+    saveTeam: saveTeam ? 'on' : '',
+    saveVenue: saveVenue ? 'on' : '',
+  }
 
   const db = getDb()
   // Обрано запис довідника — назву беремо з нього
@@ -225,8 +252,21 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
     raw.location = ''
   }
 
+  let tournamentId: string | null = null
+  if (tournamentChoice && tournamentChoice !== 'new') {
+    const [tr] = await db.select().from(schema.tournaments).where(eq(schema.tournaments.id, tournamentChoice)).limit(1)
+    if (!tr) return { errors: { tournamentName: 'Цей турнір уже видалили з довідника — оберіть інший' }, values }
+    tournamentId = tr.id
+  }
+
   const parsed = matchSchema.safeParse(raw)
   if (!parsed.success) return { errors: fieldErrors(parsed.error), values }
+  if (tournamentChoice === 'new') {
+    if (tournamentName.length < 2 || tournamentName.length > 120) {
+      return { errors: { tournamentName: 'Вкажіть назву турніру (2–120 символів)' }, values }
+    }
+    tournamentId = (await findOrCreateTournament(db, tournamentName)).id
+  }
 
   // Нове значення, введене вручну, — за бажанням одразу в довідник
   if (teamChoice === 'new' && saveTeam) {
@@ -239,7 +279,7 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
     venueId = venue.id
     parsed.data.location = venue.name.slice(0, 120)
   }
-  const data = { ...parsed.data, teamId, venueId }
+  const data = { ...parsed.data, teamId, venueId, tournamentId }
 
   const id = idFrom(formData)
   if (id) {
@@ -253,7 +293,7 @@ export async function saveMatchAction(_prev: FormState, formData: FormData): Pro
     await db.insert(schema.matches).values(data)
   }
 
-  refreshSite('/admin/matches', '/admin', '/admin/teams', '/admin/venues')
+  refreshSite('/admin/matches', '/admin', '/admin/teams', '/admin/venues', '/admin/tournaments')
   redirect('/admin/matches?saved=1')
 }
 
@@ -350,6 +390,48 @@ export async function deleteVenueAction(formData: FormData) {
   redirect('/admin/venues?deleted=1')
 }
 
+// ---------- Довідник турнірів ----------
+
+export async function saveTournamentAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin()
+  const raw = formToObject(formData, ['name'])
+  const parsed = tournamentSchema.safeParse(raw)
+  if (!parsed.success) return { errors: fieldErrors(parsed.error), values: raw }
+
+  const db = getDb()
+  const id = idFrom(formData)
+  const same = sql`lower(${schema.tournaments.name}) = lower(${parsed.data.name})`
+  const [dup] = await db
+    .select({ id: schema.tournaments.id })
+    .from(schema.tournaments)
+    .where(id ? and(same, ne(schema.tournaments.id, id)) : same)
+    .limit(1)
+  if (dup) return { errors: { name: 'Турнір з такою назвою вже є в довіднику' }, values: raw }
+
+  if (id) {
+    const updated = await db
+      .update(schema.tournaments)
+      .set(parsed.data)
+      .where(eq(schema.tournaments.id, id))
+      .returning({ id: schema.tournaments.id })
+    if (!updated.length) return { message: 'Турнір не знайдено — можливо, його вже видалили.', values: raw }
+  } else {
+    await db.insert(schema.tournaments).values(parsed.data)
+  }
+  refreshSite('/admin/tournaments', '/admin/matches')
+  redirect('/admin/tournaments?saved=1')
+}
+
+export async function deleteTournamentAction(formData: FormData) {
+  await requireAdmin()
+  const id = idFrom(formData)
+  if (!id) return
+  // Матчі лишаються, просто без турніру
+  await getDb().delete(schema.tournaments).where(eq(schema.tournaments.id, id))
+  refreshSite('/admin/tournaments', '/admin/matches')
+  redirect('/admin/tournaments?deleted=1')
+}
+
 // ---------- Налаштування сайту ----------
 
 export async function saveSettingsAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -357,6 +439,8 @@ export async function saveSettingsAction(_prev: FormState, formData: FormData): 
   const raw = formToObject(formData, [
     'tagline',
     'about',
+    'taglineEn',
+    'aboutEn',
     'phone',
     'email',
     'address',

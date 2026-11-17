@@ -1,7 +1,13 @@
 import type { PlayerRole } from '@/db/schema'
 
 export const CLUB_NAME = 'Авогадро'
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://avohadro.vercel.app'
+/** Адреса сайту: власний домен (NEXT_PUBLIC_SITE_URL), або основний домен проєкту на Vercel. */
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : 'http://localhost:3000')
+).replace(/\/$/, '')
 export const TIME_ZONE = 'Europe/Kyiv'
 
 export const ROLE_LABELS: Record<PlayerRole, string> = {
@@ -12,16 +18,6 @@ export const ROLE_LABELS: Record<PlayerRole, string> = {
   libero: 'Ліберо',
   staff: 'Тренерський штаб',
 }
-
-export const ROLE_FILTERS: { value: PlayerRole | 'all'; label: string }[] = [
-  { value: 'all', label: 'Усі' },
-  { value: 'setter', label: "Зв'язуючі" },
-  { value: 'spiker', label: 'Догравальники' },
-  { value: 'middle', label: 'Центральні' },
-  { value: 'opposite', label: 'Діагональні' },
-  { value: 'libero', label: 'Ліберо' },
-  { value: 'staff', label: 'Штаб' },
-]
 
 export const DEFAULT_TAGLINE = 'Сила, характер та жага до перемоги на кожному майданчику.'
 export const DEFAULT_ABOUT =

@@ -33,6 +33,10 @@ export const venueSchema = z.object({
   mapQuery: mapQueryField,
 })
 
+export const tournamentSchema = z.object({
+  name: z.string().trim().min(2, 'Вкажіть назву турніру (мінімум 2 символи)').max(120, 'Максимум 120 символів'),
+})
+
 export const playerSchema = z.object({
   name: z.string().trim().min(2, "Вкажіть ім'я (мінімум 2 символи)").max(80, 'Максимум 80 символів'),
   number: z
@@ -93,6 +97,8 @@ export const matchSchema = z
 export const settingsSchema = z.object({
   tagline: optionalText(160),
   about: optionalText(5000),
+  taglineEn: optionalText(160),
+  aboutEn: optionalText(5000),
   phone: optionalText(40),
   email: z
     .string()

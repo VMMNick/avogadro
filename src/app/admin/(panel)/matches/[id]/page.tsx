@@ -20,7 +20,7 @@ export default async function EditMatchPage({ params }: { params: Promise<{ id: 
     getDirectoryOptions(),
   ])
   if (!match) notFound()
-  const { teams, venues } = toOptions(dirs)
+  const { teams, venues, tournaments } = toOptions(dirs)
   return (
     <>
       <div className="adm-page-head">
@@ -37,9 +37,11 @@ export default async function EditMatchPage({ params }: { params: Promise<{ id: 
           kind: match.kind,
           teamId: match.teamId,
           venueId: match.venueId,
+          tournamentId: match.tournamentId,
         }}
         teams={teams}
         venues={venues}
+        tournaments={tournaments}
       />
       <section className="adm-card" style={{ marginTop: 20 }}>
         <h2>Видалення</h2>

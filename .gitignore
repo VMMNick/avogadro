@@ -11,3 +11,9 @@ next-env.d.ts
 public/uploads/
 .DS_Store
 Thumbs.db
+
+# Автотести
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

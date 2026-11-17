@@ -71,6 +71,17 @@ export const venues = pgTable(
   (t) => [uniqueIndex('venues_name_unique').on(sql`lower(${t.name})`)],
 )
 
+// Довідник турнірів: чемпіонат, кубок, ліга…
+export const tournaments = pgTable(
+  'tournaments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 120 }).notNull(),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('tournaments_name_unique').on(sql`lower(${t.name})`)],
+)
+
 export const matches = pgTable(
   'matches',
   {
@@ -81,6 +92,7 @@ export const matches = pgTable(
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
     location: varchar('location', { length: 120 }),
     venueId: uuid('venue_id').references(() => venues.id, { onDelete: 'set null' }),
+    tournamentId: uuid('tournament_id').references(() => tournaments.id, { onDelete: 'set null' }),
     // Сети «Авогадро» та суперника; обидва null, поки гра не зіграна
     ourSets: smallint('our_sets'),
     theirSets: smallint('their_sets'),
@@ -105,6 +117,9 @@ export const settings = pgTable(
     id: integer('id').primaryKey().default(1),
     tagline: varchar('tagline', { length: 160 }),
     about: text('about'),
+    // Англійська версія сайту (/en)
+    taglineEn: varchar('tagline_en', { length: 160 }),
+    aboutEn: text('about_en'),
     phone: varchar('phone', { length: 40 }),
     email: varchar('email', { length: 120 }),
     address: varchar('address', { length: 200 }),
@@ -151,3 +166,5 @@ export type Settings = typeof settings.$inferSelect
 export type Admin = typeof admins.$inferSelect
 export type Team = typeof teams.$inferSelect
 export type Venue = typeof venues.$inferSelect
+export type Tournament = typeof tournaments.$inferSelect
+

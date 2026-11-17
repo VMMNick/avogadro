@@ -1,0 +1,67 @@
+name: tests
+
+# Перевірки перед кожним деплоєм: типи, лінтер, збірка й автотести в браузері.
+# Щоб Vercel не випускав зламану версію, у Vercel → Settings → Build and Deployment →
+# Deployment Checks додайте перевірку GitHub «tests» (див. README → «Автотести»).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: avogadro_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Лише тестові значення для тимчасової бази в GitHub — не ваші справжні паролі
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/avogadro_test
+      SESSION_SECRET: ci-only-session-secret-0123456789abcdef
+      ADMIN_EMAIL: admin@club.test
+      ADMIN_PASSWORD: TestPassword123
+      ADMIN_INVITE_CODE: Invite-2026-test
+      NEXT_PUBLIC_SITE_URL: http://localhost:3100
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Типи
+        run: npm run typecheck
+      - name: Лінтер
+        run: npm run lint
+      - name: Збірка (з міграціями бази)
+        run: npm run build
+      - name: Браузер для тестів
+        run: npx playwright install --with-deps chromium
+      - name: Автотести
+        run: npm run test:e2e
+      - name: Звіт про помилки
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
