@@ -45,7 +45,11 @@ export async function PosterPage({ id, locale }: { id: string; locale: Locale })
           </div>
         </header>
         <h1 className="poster-teams">
-          <span>{t.clubName}</span>
+          <span className="poster-opponent">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/emblem-192.png" alt="" width={88} height={88} />
+            {t.clubName}
+          </span>
           <span className="poster-vs">{scored ? `${match.ourSets}:${match.theirSets}` : t.matches.vs}</span>
           <span className="poster-opponent">
             {team?.logoUrl && (

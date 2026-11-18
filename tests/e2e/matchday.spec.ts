@@ -149,14 +149,16 @@ test.describe('сети, склад, MVP, турнірна таблиця, ло�
     // Логотип
     await page.click('td a:has-text("Барком")')
     await page.setInputFiles('input[type=file]:not([name])', fixture('wide.png'))
+    await page.locator('dialog[open] button:has-text("Готово")').click()
     await page.waitForFunction(() => (document.querySelector('input[name=photo]') as HTMLInputElement).files!.length === 1)
-    ok((await page.locator('dialog[open]').count()) === 0, 'логотип без вікна обрізки')
     await page.click('main button[type=submit]')
     await page.waitForURL(/teams\?saved/)
     ok((await page.locator('tr', { hasText: 'Барком' }).locator('img.adm-logo-thumb').count()) === 1, 'логотип у списку команд')
 
     await page.goto('/')
-    ok((await page.locator('#matches .match-card', { hasText: 'Барком' }).first().locator('img.team-logo').count()) === 1, 'логотип на картці матчу')
+    const card = page.locator('#matches .match-card', { hasText: 'Барком' }).first()
+    ok((await card.locator('img.team-logo:not(.team-logo-ours)').count()) === 1, 'логотип суперника на картці матчу')
+    ok((await card.locator('img.team-logo-ours').count()) === 1, 'емблема Авогадро на картці матчу')
     ok((await page.locator('#standings tr', { hasText: 'Барком' }).locator('img.team-logo').count()) === 1, 'логотип у турнірній таблиці')
     await page.locator('#matches .match-card', { hasText: 'Барком' }).first().locator('a:has-text("Детальніше")').click()
     await page.waitForURL(/\/matches\//)

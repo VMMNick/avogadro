@@ -32,7 +32,21 @@ export function MatchCard({ match, locale, siteUrl }: { match: PublicMatch; loca
         {match.tournament && <span className="match-tournament">{match.tournament}</span>}
       </div>
       <div className="teams-vs">
-        <span className="team-title">{t.clubName}</span>
+        <span className="team-title">
+          <span className="team-title-with-logo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="team-logo team-logo-ours"
+              src="/images/emblem-96.png"
+              srcSet="/images/emblem-96.png 1x, /images/emblem-192.png 2x"
+              alt=""
+              width={40}
+              height={40}
+              loading="lazy"
+            />
+            {t.clubName}
+          </span>
+        </span>
         {scored ? (
           <span className={`match-score${result}`}>
             {match.ourSets}:{match.theirSets}
@@ -41,15 +55,20 @@ export function MatchCard({ match, locale, siteUrl }: { match: PublicMatch; loca
           <span className="vs-badge">{match.isPast ? '—' : t.matches.vs}</span>
         )}
         <span className="team-title">
-          {match.opponentLogo ? (
-            <span className="team-title-with-logo">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+          <span className="team-title-with-logo">
+            {match.opponentLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img className="team-logo" src={match.opponentLogo} alt="" width={40} height={40} loading="lazy" />
-              {match.opponent}
-            </span>
-          ) : (
-            match.opponent
-          )}
+            ) : (
+              // Літера — через CSS, щоб не потрапляла в текст назви команди
+              <span
+                className="team-initial"
+                aria-hidden="true"
+                data-initial={match.opponent.trim().charAt(0).toUpperCase()}
+              />
+            )}
+            {match.opponent}
+          </span>
         </span>
       </div>
       {match.sets && match.sets.length > 0 && (
