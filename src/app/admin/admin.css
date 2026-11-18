@@ -797,9 +797,7 @@
   width: 36px;
   height: 36px;
   object-fit: contain;
-  background: #fff;
-  border-radius: 6px;
-  padding: 2px;
+  border-radius: 50%;
   flex: none;
 }
 
@@ -812,8 +810,9 @@
 .adm-photo.is-logo .adm-photo-preview {
   aspect-ratio: 1;
   object-fit: contain;
-  background: #fff;
-  padding: 8px;
+  border-radius: 50%;
+  /* шахова сітка — видно, де фон прозорий */
+  background: repeating-conic-gradient(#e6e9ef 0 25%, #fff 0 50%) 50% / 16px 16px;
 }
 
 /* ---------- Редактор турнірної таблиці ---------- */

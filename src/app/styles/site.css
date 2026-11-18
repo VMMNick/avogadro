@@ -2523,9 +2523,7 @@ a {
   width: 28px;
   height: 28px;
   object-fit: contain;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.92);
-  padding: 2px;
+  border-radius: 50%;
   flex: none;
 }
 
@@ -2545,9 +2543,7 @@ a {
   width: 64px;
   height: 64px;
   object-fit: contain;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.94);
-  padding: 6px;
+  border-radius: 50%;
 }
 
 @media (max-width: 600px) {
@@ -3102,8 +3098,9 @@ a {
 .poster-opponent img {
   width: clamp(48px, 12vw, 88px);
   height: auto;
-  border-radius: 12px;
-  background: #fff;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 .poster-date {

@@ -2,13 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { CropDialog } from './CropDialog'
-import {
-  exportImage,
-  ImageReadError,
-  loadImage,
-  type CropArea,
-  type LoadedImage,
-} from './image-processing'
+import { exportImage, ImageReadError, loadImage, type CropArea, type LoadedImage } from './image-processing'
 
 export function PhotoInput({
   current,
@@ -17,7 +11,7 @@ export function PhotoInput({
 }: {
   current: string | null
   error?: string
-  /** Режим логотипа: без обрізки, з прозорим фоном, до 600 px */
+  /** Режим логотипа: круглий, з прозорим фоном, до 600 px */
   logo?: boolean
 }) {
   // Видиме поле вибору — лише для вибору; на сервер іде підготовлений файл із прихованого поля
@@ -64,8 +58,7 @@ export function PhotoInput({
     try {
       const loaded = await loadImage(file)
       setImage(loaded)
-      if (logo) await finish(null, loaded)
-      else setCropping(true)
+      setCropping(true)
     } catch (err) {
       setLocalError(err instanceof ImageReadError ? err.message : 'Не вдалося відкрити фото. Спробуйте інше.')
     } finally {
@@ -78,13 +71,15 @@ export function PhotoInput({
     setCropping(false)
     setBusy(true)
     try {
-      const file = await exportImage(img, crop, logo ? { maxSide: 600, keepTransparency: true } : {})
+      const file = await exportImage(img, crop, logo ? { maxSide: 600, keepTransparency: true, circle: true } : {})
       const dt = new DataTransfer()
       dt.items.add(file)
       if (uploadRef.current) uploadRef.current.files = dt.files
       setPreview(URL.createObjectURL(file))
       setRemove(false)
-      setInfo(`${logo ? 'Логотип готовий' : crop ? 'Обрізано' : 'Повне фото'} · ${Math.max(1, Math.round(file.size / 1024))} КБ`)
+      setInfo(
+        `${logo ? 'Круглий логотип готовий' : crop ? 'Обрізано' : 'Повне фото'} · ${Math.max(1, Math.round(file.size / 1024))} КБ`,
+      )
     } catch (err) {
       setLocalError(err instanceof ImageReadError ? err.message : 'Не вдалося обробити фото.')
     } finally {
@@ -113,14 +108,7 @@ export function PhotoInput({
         />
         <div className="adm-photo-controls">
           <input ref={uploadRef} type="file" name="photo" hidden tabIndex={-1} aria-hidden="true" />
-          <input
-            ref={pickerRef}
-            type="file"
-            accept="image/*,.heic,.heif"
-            onChange={onPick}
-            disabled={busy}
-            hidden
-          />
+          <input ref={pickerRef} type="file" accept="image/*,.heic,.heif" onChange={onPick} disabled={busy} hidden />
           <div className="adm-actions">
             <button type="button" className="adm-btn" onClick={() => pickerRef.current?.click()} disabled={busy}>
               {busy
@@ -133,21 +121,26 @@ export function PhotoInput({
                     ? 'Вибрати інше фото'
                     : 'Вибрати фото'}
             </button>
-            {image && hasNewPhoto && !logo && (
+            {image && hasNewPhoto && (
               <button type="button" className="adm-btn" onClick={() => setCropping(true)} disabled={busy}>
-                Обрізати ще раз
+                {logo ? 'Змінити коло' : 'Обрізати ще раз'}
               </button>
             )}
           </div>
           <span className="adm-hint">
             {info ??
               (logo
-                ? 'PNG або WebP з прозорим фоном виглядає найкраще. Розмір підганяється автоматично.'
+                ? 'Логотип обрізається в коло, фон навколо — прозорий. Розмір підганяється автоматично.'
                 : 'Будь-яке фото: JPG, PNG, WebP, HEIC з iPhone тощо. Розмір і якість підганяються автоматично.')}
           </span>
           {current && !hasNewPhoto && (
             <label className="adm-check">
-              <input type="checkbox" name="removePhoto" checked={remove} onChange={(e) => setRemove(e.target.checked)} />
+              <input
+                type="checkbox"
+                name="removePhoto"
+                checked={remove}
+                onChange={(e) => setRemove(e.target.checked)}
+              />
               {logo ? 'Прибрати логотип' : 'Прибрати фото'}
             </label>
           )}
@@ -161,6 +154,7 @@ export function PhotoInput({
 
       {cropping && image && (
         <CropDialog
+          round={logo}
           imageUrl={image.url}
           onApply={(area) => finish(area)}
           onSkip={() => finish(null)}

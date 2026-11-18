@@ -84,14 +84,14 @@ export async function matchOgImage(id: string, locale: Locale) {
                 display: 'flex',
                 width: 200,
                 height: 200,
-                borderRadius: 32,
-                background: 'rgba(255,255,255,0.95)',
+                borderRadius: 999,
+                overflow: 'hidden',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logoSrc} width={170} height={170} alt="" style={{ objectFit: 'contain' }} />
+              <img src={logoSrc} width={200} height={200} alt="" style={{ objectFit: 'contain' }} />
             </div>
           ) : (
             <div

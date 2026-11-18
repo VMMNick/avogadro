@@ -12,8 +12,11 @@ export function CropDialog({
   onApply,
   onSkip,
   onCancel,
+  round = false,
 }: {
   imageUrl: string
+  /** Круглий логотип 1:1 */
+  round?: boolean
   onApply: (area: CropArea) => void
   onSkip: () => void
   onCancel: () => void
@@ -39,10 +42,11 @@ export function CropDialog({
       }}
     >
       <div className="adm-crop-head">
-        <h2 id="crop-title">Обрізка фото</h2>
+        <h2 id="crop-title">{round ? 'Логотип у колі' : 'Обрізка фото'}</h2>
         <p className="adm-muted">
-          Пересуньте фото й наблизьте, щоб гравець був у рамці 3:4 — як у картці на сайті. Або залиште
-          фото повністю.
+          {round
+            ? 'Пересуньте й наблизьте, щоб емблема заповнила коло. Усе поза колом стане прозорим. Або впишіть логотип у коло повністю.'
+            : 'Пересуньте фото й наблизьте, щоб гравець був у рамці 3:4 — як у картці на сайті. Або залиште фото повністю.'}
         </p>
       </div>
 
@@ -53,8 +57,9 @@ export function CropDialog({
           zoom={zoom}
           minZoom={1}
           maxZoom={5}
-          aspect={PHOTO_ASPECT}
-          showGrid
+          aspect={round ? 1 : PHOTO_ASPECT}
+          cropShape={round ? 'round' : 'rect'}
+          showGrid={!round}
           objectFit="contain"
           onCropChange={setCrop}
           onZoomChange={setZoom}
@@ -76,16 +81,11 @@ export function CropDialog({
       </label>
 
       <div className="adm-actions adm-crop-actions">
-        <button
-          type="button"
-          className="adm-btn adm-btn-primary"
-          autoFocus
-          onClick={() => area && onApply(area)}
-        >
-          Обрізати
+        <button type="button" className="adm-btn adm-btn-primary" autoFocus onClick={() => area && onApply(area)}>
+          {round ? 'Готово' : 'Обрізати'}
         </button>
         <button type="button" className="adm-btn" onClick={onSkip}>
-          Без обрізки
+          {round ? 'Вписати повністю' : 'Без обрізки'}
         </button>
         <button type="button" className="adm-btn adm-crop-cancel" onClick={onCancel}>
           Скасувати

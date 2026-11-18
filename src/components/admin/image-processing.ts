@@ -47,6 +47,38 @@ function drawScaled(source: CanvasImageSource, sx: number, sy: number, sw: numbe
   return canvas
 }
 
+/**
+ * Круглий логотип на прозорому тлі.
+ * cropped — область уже квадратна (вибрана в редакторі): заповнюємо коло повністю.
+ * Інакше вписуємо все зображення в коло цілком, нічого не відрізаючи.
+ */
+function drawCircle(source: CanvasImageSource, area: CropArea, cropped: boolean, maxSide: number) {
+  const side = Math.max(
+    1,
+    Math.round(Math.min(maxSide, cropped ? Math.min(area.width, area.height) : Math.max(area.width, area.height))),
+  )
+  const canvas = document.createElement('canvas')
+  canvas.width = side
+  canvas.height = side
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new ImageReadError('Браузер не зміг обробити фото.')
+  ctx.imageSmoothingQuality = 'high'
+  ctx.beginPath()
+  ctx.arc(side / 2, side / 2, side / 2, 0, Math.PI * 2)
+  ctx.closePath()
+  ctx.clip()
+  if (cropped) {
+    ctx.drawImage(source, area.x, area.y, area.width, area.height, 0, 0, side, side)
+  } else {
+    // Прямокутник, вписаний у коло: діагональ = діаметр
+    const scale = side / Math.hypot(area.width, area.height)
+    const w = area.width * scale
+    const h = area.height * scale
+    ctx.drawImage(source, area.x, area.y, area.width, area.height, (side - w) / 2, (side - h) / 2, w, h)
+  }
+  return canvas
+}
+
 export type LoadedImage = {
   /** Зображення для редактора (вже з правильною орієнтацією і обмеженим розміром) */
   bitmap: ImageBitmap
@@ -91,10 +123,12 @@ export type CropArea = { x: number; y: number; width: number; height: number }
 export async function exportImage(
   image: LoadedImage,
   crop: CropArea | null,
-  opts: { maxSide?: number; keepTransparency?: boolean } = {},
+  opts: { maxSide?: number; keepTransparency?: boolean; circle?: boolean } = {},
 ): Promise<File> {
   const area = crop ?? { x: 0, y: 0, width: image.width, height: image.height }
-  const canvas = drawScaled(image.bitmap, area.x, area.y, area.width, area.height, opts.maxSide ?? OUTPUT_MAX_SIDE)
+  const canvas = opts.circle
+    ? drawCircle(image.bitmap, area, Boolean(crop), opts.maxSide ?? OUTPUT_MAX_SIDE)
+    : drawScaled(image.bitmap, area.x, area.y, area.width, area.height, opts.maxSide ?? OUTPUT_MAX_SIDE)
 
   const webp = await toBlob(canvas, 'image/webp', QUALITY)
   if (webp && webp.type === 'image/webp') return new File([webp], 'photo.webp', { type: 'image/webp' })
